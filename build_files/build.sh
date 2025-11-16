@@ -4,7 +4,9 @@ set -ouex pipefail
 
 # Install from Fedora
 
-dnf5 install -y tmux
+dnf5 install -y \
+  helix \
+  tmux
 
 # Install from COPR
 
