@@ -16,6 +16,3 @@ dnf5 install -y \
 # Disable COPR repos
 dnf5 -y copr disable fcsm/tmuxinator
 dnf5 -y copr disable scottames/ghostty
-
-# Clean up
-dnf5 clean all
