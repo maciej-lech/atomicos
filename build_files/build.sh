@@ -9,6 +9,7 @@ dnf5 -y copr enable gmaglione/podman-bootc
 
 # Install packages
 dnf5 install -y \
+  fsverity-utils \
   ghostty \
   helix \
   podman-bootc \
