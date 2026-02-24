@@ -13,6 +13,7 @@ dnf5 install -y \
   ghostty \
   helix \
   podman-bootc \
+  qt6ct \
   socat \
   tmux \
   tmuxinator
