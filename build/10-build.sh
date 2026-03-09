@@ -235,6 +235,13 @@ dnf5 clean all
 
 echo "::group:: System Configuration"
 
+# Install ujust wrapper (removed with ublue-os-just RPM, justfiles come from common OCI)
+cat > /usr/bin/ujust <<'SCRIPT'
+#!/usr/bin/bash
+/usr/bin/just --justfile /usr/share/ublue-os/just/00-entry.just "${@}"
+SCRIPT
+chmod +x /usr/bin/ujust
+
 # Install libvirt SELinux workaround service
 cat > /usr/lib/systemd/system/libvirt-workaround.service <<'UNIT'
 [Unit]
