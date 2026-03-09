@@ -1,12 +1,6 @@
 #!/usr/bin/bash
-set -euo pipefail
 
-###############################################################################
-# COPR Helper Functions
-###############################################################################
-# These helper functions follow the @ublue-os/bluefin pattern for managing
-# COPR repositories in a safe, isolated manner.
-###############################################################################
+set -euo pipefail
 
 copr_install_isolated() {
     local copr_name="$1"
