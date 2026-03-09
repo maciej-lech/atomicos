@@ -59,37 +59,101 @@ echo "::group:: Install Packages"
 
 # Install standard packages
 dnf5 install -y \
+  7zip \
+  android-tools \
   borgbackup \
+  cascadia-code-fonts \
+  davfs2 \
   ddcutil \
+  dhcpcd \
   evtest \
   fastfetch \
   firewall-config \
   fish \
   foo2zjs \
   fsverity-utils \
+  fuse-encfs \
+  fzf \
   git-credential-libsecret \
+  git-lfs \
+  git-subtree \
+  git-svn \
   glow \
+  gnome-shell-extension-gsconnect \
   gnome-tweaks \
   gum \
   helix \
+  hexedit \
   hplip \
   input-remapper \
   iwd \
+  jetbrains-mono-fonts-all \
+  just \
   libxcrypt-compat \
   lm_sensors \
+  mkisofs \
+  NetworkManager-team \
   niri \
+  numactl \
   oddjob-mkhomedir \
+  opendyslexic-fonts \
   openssh-askpass \
+  podman-compose \
+  podman-machine \
+  podman-tui \
+  powerstat \
   powertop \
+  pv \
   python3-pip \
+  python3-rpm \
+  python3-systemd \
   qt6ct \
   rclone \
   restic \
+  schily-libs \
   setools-console \
+  setroubleshoot-plugins \
+  setroubleshoot-server \
   socat \
+  subversion \
+  usbip \
+  util-linux-script \
   waypipe \
   xdg-terminal-exec \
+  ydotool \
   zenity
+
+# LUKS/Clevis
+dnf5 install -y \
+  clevis \
+  clevis-luks \
+  clevis-pin-tpm2
+
+# Filesystem tools
+dnf5 install -y \
+  bcache-tools \
+  cryfs \
+  device-mapper-multipath \
+  libblockdev-btrfs \
+  libblockdev-lvm \
+  udisks2-btrfs \
+  udisks2-iscsi \
+  udisks2-lvm2
+
+# Dev tools
+dnf5 install -y \
+  ccache \
+  debugedit \
+  dwz \
+  elfutils \
+  flatpak-builder \
+  gdb-minimal \
+  patch
+
+# osbuild
+dnf5 install -y \
+  osbuild \
+  osbuild-selinux
 
 # Virtualization
 dnf5 install -y \
@@ -97,15 +161,18 @@ dnf5 install -y \
   incus \
   incus-agent \
   libvirt \
-  qemu-char-spice \
-  qemu-device-display-virtio-gpu \
-  qemu-device-display-virtio-vga \
-  qemu-device-usb-redirect \
-  qemu-img \
-  qemu-system-x86-core \
+  libvirt-dbus \
+  libvirt-nss \
+  lxc \
+  qemu \
+  qemu-user-binfmt \
+  qemu-user-static \
   swtpm \
   swtpm-tools \
+  udica \
+  virt-install \
   virt-manager \
+  virt-v2v \
   virt-viewer
 
 # System profiling
@@ -147,7 +214,7 @@ dnf5 -y copr disable avengemedia/dms
 dnf5 -y install \
   --enablerepo="copr:copr.fedorainfracloud.org:avengemedia:dms" \
   --enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
-  cliphist dms-greeter
+  cliphist dms dms-greeter
 
 # Install Docker CE from official repo
 dnf5 config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo
