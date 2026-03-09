@@ -37,10 +37,6 @@ cp /ctx/custom/brew/*.Brewfile /usr/share/ublue-os/homebrew/ 2>/dev/null || true
 # Consolidate Just Files
 find /ctx/custom/ujust -iname '*.just' -exec printf "\n\n" \; -exec cat {} \; >> /usr/share/ublue-os/just/60-custom.just 2>/dev/null || true
 
-# Copy Flatpak preinstall files
-mkdir -p /etc/flatpak/preinstall.d/
-cp /ctx/custom/flatpaks/*.preinstall /etc/flatpak/preinstall.d/ 2>/dev/null || true
-
 echo "::endgroup::"
 
 echo "::group:: Remove unwanted base packages"
@@ -336,7 +332,6 @@ systemctl enable tailscaled.service
 systemctl enable brew-setup.service
 systemctl enable dconf-update.service
 systemctl enable ublue-system-setup.service
-systemctl enable flatpak-preinstall.service
 systemctl enable input-remapper.service
 systemctl enable uupd.timer
 systemctl enable swtpm-workaround.service
@@ -348,6 +343,7 @@ systemctl --global enable ublue-user-setup.service
 
 # Disable Fedora flatpak repos (we use Flathub)
 systemctl mask flatpak-add-fedora-repos.service
+systemctl mask flatpak-preinstall.service
 
 echo "::endgroup::"
 
