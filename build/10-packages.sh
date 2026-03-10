@@ -5,6 +5,15 @@ set -eoux pipefail
 # shellcheck source=/dev/null
 source /ctx/build/copr-helpers.sh
 
+# Remove unneeded base image packages
+dnf5 remove -y \
+  ublue-os-just \
+  ublue-os-luks \
+  ublue-os-signing \
+  ublue-os-udev-rules \
+  ublue-os-update-services \
+  yelp
+
 # Packages
 dnf5 install -y \
   7zip \
