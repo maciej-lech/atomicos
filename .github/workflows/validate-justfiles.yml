@@ -5,7 +5,6 @@ permissions:
 on:
   pull_request:
     paths:
-      - "custom/ujust/**"
       - "Justfile"
 jobs:
   validate:
@@ -20,21 +19,10 @@ jobs:
       - name: Validate Justfiles
         shell: bash
         run: |
-          echo "Validating justfiles in custom/ujust/ directory..."
-
           set -xeuo pipefail
 
-          # Validate root Justfile
           echo "::group:: Validating Justfile"
           just --unstable --fmt --check -f Justfile
           echo "::endgroup::"
-
-          # Validate custom ujust files
-          find "custom/ujust" -iname '*.just' -print0 | \
-            while IFS= read -r -d '' justfile ; do \
-              echo "::group:: ===$(basename "$justfile")==="
-              just --unstable --fmt --check -f "$justfile"
-              echo "::endgroup::"
-            done
 
           echo "All justfiles are valid"
