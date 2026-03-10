@@ -33,10 +33,7 @@ SCRIPT
 chmod +x /usr/bin/ujust
 
 systemctl enable brew-setup.service
-systemctl enable dconf-update.service
-systemctl enable ublue-system-setup.service
 systemctl enable uupd.timer
-systemctl --global enable ublue-user-setup.service
 
 systemctl mask flatpak-add-fedora-repos.service
 systemctl mask flatpak-preinstall.service
