@@ -2,6 +2,15 @@
 
 set -eoux pipefail
 
+# shellcheck source=/dev/null
+source /ctx/build/copr-helpers.sh
+
+dnf5 install -y \
+  qt6ct \
+  xdg-terminal-exec
+
+copr_install_isolated "scottames/ghostty" ghostty
+
 dnf5 -y copr enable avengemedia/dms
 dnf5 -y copr disable avengemedia/dms
 dnf5 -y install \
