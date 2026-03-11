@@ -23,7 +23,6 @@ dnf5 install -y \
   bcc-tools \
   bpftop \
   bpftrace \
-  cascadia-code-fonts \
   ccache \
   clevis \
   clevis-luks \
@@ -50,10 +49,6 @@ dnf5 install -y \
   git-lfs \
   git-subtree \
   git-svn \
-  glow \
-  gnome-shell-extension-gsconnect \
-  gnome-tweaks \
-  gum \
   helix \
   hexedit \
   hplip \
@@ -76,7 +71,6 @@ dnf5 install -y \
   nicstat \
   numactl \
   oddjob-mkhomedir \
-  opendyslexic-fonts \
   openssh-askpass \
   osbuild \
   osbuild-selinux \
@@ -127,7 +121,6 @@ dnf5 install -y \
   virt-manager \
   virt-v2v \
   virt-viewer \
-  waypipe \
   xdg-terminal-exec \
   ydotool \
   zenity
