@@ -5,6 +5,11 @@ set -eoux pipefail
 systemctl disable rpm-ostreed-automatic.timer
 systemctl mask flatpak-add-fedora-repos.service
 
+# Disable repos inherited from base image
+for repo in /etc/yum.repos.d/_copr*.repo; do
+    [[ -f "$repo" ]] && sed -i 's/enabled=1/enabled=0/g' "$repo"
+done
+
 dnf5 clean all
 
 rm -rf /run/dnf /run/selinux-policy
