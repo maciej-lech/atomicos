@@ -1,0 +1,13 @@
+[Unit]
+Description=Add Flathub flatpak repository
+ConditionPathExists=!/var/lib/flatpak/.flathub-initialized
+Before=flatpak-system-helper.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/flatpak remote-add --system --if-not-exists flathub /etc/flatpak/remotes.d/flathub.flatpakrepo
+ExecStartPost=/usr/bin/touch /var/lib/flatpak/.flathub-initialized
+
+[Install]
+WantedBy=multi-user.target
