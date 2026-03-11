@@ -15,6 +15,7 @@ dnf5 install -y \
   fastfetch \
   fish \
   foo2zjs \
+  gum \
   helix \
   hexedit \
   hplip \
