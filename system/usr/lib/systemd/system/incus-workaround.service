@@ -2,23 +2,23 @@
 Description=Workaround incus not having the correct label
 ConditionFileIsExecutable=/usr/bin/incus
 ConditionFileIsExecutable=/usr/bin/incus-agent
-ConditionPathExists=/usr/lib/incus
+ConditionPathIsDirectory=/usr/libexec/incus
 After=local-fs.target
 
 [Service]
 Type=oneshot
 ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/overrides/incus ] || /usr/bin/cp /usr/bin/incus /usr/local/bin/overrides/incus"
-ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/overrides/incus-agent ] || /usr/bin/cp /usr/bin/incus /usr/local/bin/overrides/incus-agent"
-ExecStartPre=/usr/bin/bash -c "[ -d /usr/local/lib/overrides/incus ] || /usr/bin/cp -R /usr/lib/incus /usr/local/lib/overrides/incus"
+ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/overrides/incus-agent ] || /usr/bin/cp /usr/bin/incus-agent /usr/local/bin/overrides/incus-agent"
+ExecStartPre=/usr/bin/bash -c "[ -d /usr/local/lib/overrides/incus ] || /usr/bin/cp -R /usr/libexec/incus /usr/local/lib/overrides/incus"
 ExecStartPre=/usr/bin/mount --bind /usr/local/bin/overrides/incus /usr/bin/incus
 ExecStartPre=/usr/bin/mount --bind /usr/local/bin/overrides/incus-agent /usr/bin/incus-agent
-ExecStartPre=/usr/bin/mount --bind /usr/local/lib/overrides/incus /usr/lib/incus
+ExecStartPre=/usr/bin/mount --bind /usr/local/lib/overrides/incus /usr/libexec/incus
 ExecStart=/usr/sbin/restorecon /usr/bin/incus
 ExecStart=/usr/sbin/restorecon /usr/bin/incus-agent
-ExecStart=/usr/sbin/restorecon -R /usr/lib/incus
+ExecStart=/usr/sbin/restorecon -R /usr/libexec/incus
 ExecStop=/usr/bin/umount /usr/bin/incus
 ExecStop=/usr/bin/umount /usr/bin/incus-agent
-ExecStop=/usr/bin/umount /usr/lib/incus
+ExecStop=/usr/bin/umount /usr/libexec/incus
 ExecStop=/usr/bin/rm /usr/local/bin/overrides/incus
 ExecStop=/usr/bin/rm /usr/local/bin/overrides/incus-agent
 ExecStop=/usr/bin/rm -r /usr/local/lib/overrides/incus
