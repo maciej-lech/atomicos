@@ -1,0 +1,16 @@
+[Unit]
+Description=Workaround swtpm not having the correct label
+ConditionFileIsExecutable=/usr/bin/swtpm
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/overrides/swtpm ] || /usr/bin/cp /usr/bin/swtpm /usr/local/bin/overrides/swtpm"
+ExecStartPre=/usr/bin/mount --bind /usr/local/bin/overrides/swtpm /usr/bin/swtpm
+ExecStart=/usr/sbin/restorecon /usr/bin/swtpm
+ExecStop=/usr/bin/umount /usr/bin/swtpm
+ExecStop=/usr/bin/rm /usr/local/bin/overrides/swtpm
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
