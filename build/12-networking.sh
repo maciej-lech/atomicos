@@ -21,6 +21,6 @@ dnf5 install -y \
 
 dnf5 config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
 dnf5 install -y tailscale
-dnf5 config-manager setopt tailscale-stable.enabled=0
+sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/tailscale.repo
 
 systemctl enable tailscaled.service
