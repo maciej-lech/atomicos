@@ -5,8 +5,6 @@ set -eoux pipefail
 # shellcheck source=/dev/null
 source /ctx/build/copr-helpers.sh
 
-dnf5 remove -y yelp
-
 dnf5 install -y \
   7zip \
   android-tools \
