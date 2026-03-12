@@ -1,11 +1,14 @@
+---
 name: Validate Shell Scripts
-permissions:
-  contents: read
 
 on:
   pull_request:
     paths:
       - "build/**/*.sh"
+
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest

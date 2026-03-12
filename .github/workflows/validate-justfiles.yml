@@ -1,11 +1,14 @@
+---
 name: Validate Justfiles
-permissions:
-  contents: read
 
 on:
   pull_request:
     paths:
       - "Justfile"
+
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest

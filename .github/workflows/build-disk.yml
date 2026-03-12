@@ -2,28 +2,19 @@
 name: Build disk images
 
 on:
-  # Temporarily disabled
-  # workflow_dispatch:
-  #   inputs:
-  #     upload-to-s3:
-  #       description: "Upload to S3"
-  #       required: false
-  #       default: false
-  #       type: boolean
-  #     platform:
-  #       required: true
-  #       type: choice
-  #       options:
-  #         - amd64
-  #         - arm64
-  # pull_request:
-  #   branches:
-  #     - master
-  #   paths:
-  #     - './iso/disk.toml'
-  #     - './iso/iso.toml'
-  #     - './.github/workflows/build-disk.yml'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      upload-to-s3:
+        description: "Upload to S3"
+        required: false
+        default: false
+        type: boolean
+      platform:
+        required: true
+        type: choice
+        options:
+          - amd64
+          - arm64
 
 env:
   IMAGE_NAME: ${{ github.event.repository.name }} # output of build.yml, keep in sync
