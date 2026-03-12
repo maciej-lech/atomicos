@@ -60,5 +60,11 @@
       "matchDepTypes": ["action"],
       "matchFileNames": [".github/workflows/**.yaml", ".github/workflows/**.yml"],
     },
+    {
+      "description": "Exclude Claude workflow files from updates to avoid review validation failures",
+      "enabled": false,
+      "matchDepTypes": ["action"],
+      "matchFileNames": [".github/workflows/claude*.yml"],
+    },
   ]
 }
