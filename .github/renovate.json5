@@ -12,10 +12,10 @@
       customType: 'regex',
       description: 'Match container images in Justfile with tag and digest',
       managerFilePatterns: [
-        '^Justfile$',
+        '/^Justfile$/',
       ],
       matchStrings: [
-        '(?<justName>.+?)\\s:=\\s(?:env\\(.+?,\\s)?["\'](?<packageName>\\S+?):(?<currentValue>\\S+?)@(?<currentDigest>sha256:[a-f0-9]+?)["\']\\)?',
+        '[^\\s]+\\s*:=\\s*(?:env\\([^,]+,\\s*)?["\'](?<depName>[a-z0-9./_-]+):(?<currentValue>[a-z0-9._-]+)@(?<currentDigest>sha256:[a-f0-9]+)["\']\\)?',
       ],
       datasourceTemplate: 'docker',
     },
