@@ -8,7 +8,11 @@ source /ctx/build/copr-helpers.sh
 dnf5 install -y \
   7zip \
   android-tools \
+  bcc \
+  bcc-tools \
   bolt \
+  bpftop \
+  bpftrace \
   colord-gtk4 \
   cups-pk-helper \
   ddcutil \
@@ -25,21 +29,30 @@ dnf5 install -y \
   hexedit \
   hplip \
   htop \
+  iotop-c \
   jetbrains-mono-fonts-all \
   just \
   kernel-tools \
   lm_sensors \
+  nicstat \
+  numactl \
   oddjob-mkhomedir \
   openssh-askpass \
   pam-u2f \
   pamu2fcfg \
+  powerstat \
+  powertop \
   pv \
   setools-console \
   setroubleshoot-plugins \
   setroubleshoot-server \
   smartmontools \
   switcheroo-control \
+  sysprof \
+  sysstat \
+  tiptop \
   tmux \
+  trace-cmd \
   tuned \
   tuned-ppd \
   util-linux-script \
