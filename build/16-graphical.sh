@@ -10,6 +10,7 @@ dnf5 install -y \
   gcr \
   gnome-keyring \
   gnome-keyring-pam \
+  kf6-kimageformats \
   libportal \
   libportal-gtk4 \
   pinentry-gnome3 \

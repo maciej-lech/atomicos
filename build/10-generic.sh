@@ -10,6 +10,7 @@ dnf5 install -y \
   android-tools \
   bolt \
   colord-gtk4 \
+  cups-pk-helper \
   ddcutil \
   evtest \
   fastfetch \
@@ -22,7 +23,6 @@ dnf5 install -y \
   helix \
   hexedit \
   hplip \
-  iio-sensor-proxy \
   jetbrains-mono-fonts-all \
   just \
   kernel-tools \
