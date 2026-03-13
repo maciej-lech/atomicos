@@ -12,12 +12,10 @@ done
 
 dnf5 clean all
 
-rm -rf /run/dnf /run/selinux-policy
-rm -rf /var/lib/dnf
-rm -rf /var/lib/unpackaged
-rm -rf /var/log/*
 rm -rf /boot && mkdir -p /boot
 rm -rf /tmp && mkdir -p /tmp
+rm -rf /run && mkdir -p /run
+rm -rf /var/* && mkdir /var/tmp
 
 # Validate no repos are left enabled
 VALIDATION_FAILED=0
