@@ -7,14 +7,22 @@ source /ctx/build/copr-helpers.sh
 
 dnf5 install -y \
   accountsservice \
+  adw-gtk3-theme \
+  adwaita-cursor-theme \
+  adwaita-icon-theme \
+  adwaita-icon-theme-legacy \
   gcr \
   gnome-keyring \
   gnome-keyring-pam \
+  hicolor-icon-theme \
   kf6-kimageformats \
+  libadwaita \
   libportal \
   libportal-gtk4 \
   pinentry-gnome3 \
+  qadwaitadecorations-qt5 \
   qt6ct \
+  sound-theme-freedesktop \
   xdg-desktop-portal-gnome \
   xdg-desktop-portal-wlr \
   xdg-terminal-exec \
