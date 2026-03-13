@@ -44,30 +44,6 @@ clean:
     rm -f output.env
     rm -f output/
 
-# Sudo Clean Repo
-[group('Utility')]
-[private]
-sudo-clean:
-    just sudoif just clean
-
-# sudoif bash function
-[group('Utility')]
-[private]
-sudoif command *args:
-    #!/usr/bin/bash
-    function sudoif(){
-        if [[ "${UID}" -eq 0 ]]; then
-            "$@"
-        elif [[ "$(command -v sudo)" && -n "${SSH_ASKPASS:-}" ]] && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
-            SUDO_ASKPASS="${SUDO_ASKPASS:-$SSH_ASKPASS}" /usr/bin/sudo --askpass "$@" || exit 1
-        elif [[ "$(command -v sudo)" ]]; then
-            /usr/bin/sudo "$@" || exit 1
-        else
-            exit 1
-        fi
-    }
-    sudoif {{ command }} {{ args }}
-
 # This Justfile recipe builds a container image using Podman.
 #
 # Arguments:
@@ -121,6 +97,9 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/bash
     set -eoux pipefail
 
+    # Cache sudo credentials for subsequent commands
+    sudo -v
+
     # Check if already running as root or under sudo
     if [[ -n "${SUDO_USER:-}" || "${UID}" -eq "0" ]]; then
         echo "Already root or running under sudo, no need to load image from user podman."
@@ -137,16 +116,16 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
 
     if [[ $return_code -eq 0 ]]; then
         # If the image is found, load it into rootful podman
-        ID=$(just sudoif podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
+        ID=$(sudo podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
         if [[ "$ID" != "$USER_IMG_ID" ]]; then
             # If the image ID is not found or different from user, copy the image from user podman to root podman
             COPYTMP=$(mktemp -p "${PWD}" -d -t _build_podman_scp.XXXXXXXXXX)
-            just sudoif TMPDIR=${COPYTMP} podman image scp ${UID}@localhost::"${target_image}:${tag}" root@localhost::"${target_image}:${tag}"
+            sudo TMPDIR=${COPYTMP} podman image scp ${UID}@localhost::"${target_image}:${tag}" root@localhost::"${target_image}:${tag}"
             rm -rf "${COPYTMP}"
         fi
     else
         # If the image is not found, pull it from the repository
-        just sudoif podman pull "${target_image}:${tag}"
+        sudo podman pull "${target_image}:${tag}"
     fi
 
 # Build a bootc bootable image using Bootc Image Builder (BIB)
@@ -161,6 +140,9 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
 _build-bib $target_image $tag $type $config: (_rootful_load_image target_image tag)
     #!/usr/bin/env bash
     set -euo pipefail
+
+    # Cache sudo credentials for subsequent commands
+    sudo -v
 
     args="--type ${type} "
     args+="--use-librepo=True "
