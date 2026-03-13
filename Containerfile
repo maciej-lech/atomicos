@@ -7,7 +7,7 @@ COPY system /system
 COPY --from=ghcr.io/ublue-os/brew@sha256:1272e7f46b34e4212dcf01d356ef25612762a328c94ac0c04920c8585a2b98cf /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
 
 # Base Image - GNOME included
-FROM ghcr.io/ublue-os/silverblue-main:latest@sha256:b1cb10194679fec4c99f8f66f1ff0fa4eee7e18bc56b2b2b27ab79a03d87066a
+FROM ghcr.io/ublue-os/silverblue-main:latest@sha256:e6c9838e5cb22fd4cdc284e0694e7e072992b5c5bdd07883fe0dae512036eaa7
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
