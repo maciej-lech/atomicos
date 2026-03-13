@@ -284,8 +284,8 @@ lint:
         echo "shellcheck could not be found. Please install it."
         exit 1
     fi
-    # Run shellcheck on all Bash scripts
-    /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
+    # Run shellcheck on all tracked Bash scripts
+    git ls-files '*.sh' | xargs shellcheck
 
 # Runs shfmt on all Bash scripts
 format:
@@ -296,5 +296,5 @@ format:
         echo "shellcheck could not be found. Please install it."
         exit 1
     fi
-    # Run shfmt on all Bash scripts
-    /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
+    # Run shfmt on all tracked Bash scripts
+    git ls-files '*.sh' | xargs shfmt --write
