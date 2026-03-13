@@ -8,17 +8,24 @@ source /ctx/build/copr-helpers.sh
 dnf5 install -y \
   7zip \
   android-tools \
+  bolt \
+  colord-gtk4 \
   ddcutil \
   evtest \
   fastfetch \
   fish \
   foo2zjs \
+  fprintd \
+  fprintd-pam \
   gum \
+  hdparm \
   helix \
   hexedit \
   hplip \
+  iio-sensor-proxy \
   jetbrains-mono-fonts-all \
   just \
+  kernel-tools \
   lm_sensors \
   oddjob-mkhomedir \
   openssh-askpass \
@@ -26,6 +33,9 @@ dnf5 install -y \
   setools-console \
   setroubleshoot-plugins \
   setroubleshoot-server \
+  switcheroo-control \
+  tuned \
+  tuned-ppd \
   util-linux-script \
   ydotool \
   zenity

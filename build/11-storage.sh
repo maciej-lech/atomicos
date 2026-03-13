@@ -11,6 +11,13 @@ dnf5 install -y \
   device-mapper-multipath \
   fsverity-utils \
   fuse-encfs \
+  gvfs \
+  gvfs-archive \
+  gvfs-fuse \
+  gvfs-gphoto2 \
+  gvfs-mtp \
+  gvfs-nfs \
+  gvfs-smb \
   libblockdev-btrfs \
   libblockdev-lvm \
   udisks2-btrfs \

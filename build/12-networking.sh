@@ -7,7 +7,14 @@ dnf5 install -y \
   dhcpcd \
   firewall-config \
   iwd \
+  mobile-broadband-provider-info \
+  NetworkManager-openconnect \
+  NetworkManager-openvpn \
+  NetworkManager-ppp \
+  NetworkManager-ssh \
   NetworkManager-team \
+  NetworkManager-vpnc \
+  nm-connection-editor \
   samba \
   samba-common-tools \
   samba-dcerpc \

@@ -7,5 +7,4 @@ dnf5 remove -y \
   ublue-os-luks \
   ublue-os-signing \
   ublue-os-udev-rules \
-  ublue-os-update-services \
-  yelp
+  ublue-os-update-services

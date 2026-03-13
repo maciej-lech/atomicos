@@ -6,8 +6,8 @@ COPY system /system
 # Copy homebrew tarball from brew OCI image
 COPY --from=ghcr.io/ublue-os/brew@sha256:1272e7f46b34e4212dcf01d356ef25612762a328c94ac0c04920c8585a2b98cf /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
 
-# Base Image - GNOME included
-FROM ghcr.io/ublue-os/silverblue-main:latest@sha256:e6c9838e5cb22fd4cdc284e0694e7e072992b5c5bdd07883fe0dae512036eaa7
+# Base Image - minimal base, no DE
+FROM ghcr.io/ublue-os/base-main:latest@sha256:17151745f2327971d8abac140af2e932ba16ec06f1bd6063d540e8799fce3951
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
