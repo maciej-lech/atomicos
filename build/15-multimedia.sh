@@ -16,11 +16,11 @@ dnf5 swap -y libswresample-free libswresample --allowerasing
 dnf5 swap -y libswscale-free libswscale --allowerasing
 
 dnf5 install -y \
-  alsa-firmware \
-  ffmpegthumbnailer \
-  intel-vaapi-driver \
-  libheif \
-  libva-utils \
-  pipewire-libs-extra
+	alsa-firmware \
+	ffmpegthumbnailer \
+	intel-vaapi-driver \
+	libheif \
+	libva-utils \
+	pipewire-libs-extra
 
 dnf5 config-manager setopt fedora-multimedia.enabled=0
