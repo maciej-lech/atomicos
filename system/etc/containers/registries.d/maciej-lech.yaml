@@ -1,0 +1,3 @@
+docker:
+  ghcr.io/maciej-lech:
+    use-sigstore-attachments: true

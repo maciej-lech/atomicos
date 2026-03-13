@@ -20,6 +20,15 @@
                     "keyPath": "/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
                 }
             ],
+            "ghcr.io/maciej-lech": [
+                {
+                    "type": "sigstoreSigned",
+                    "keyPath": "/usr/share/pki/containers/atomicos.pub",
+                    "signedIdentity": {
+                        "type": "matchRepository"
+                    }
+                }
+            ],
             "quay.io/toolbx-images": [
                 {
                     "type": "sigstoreSigned",

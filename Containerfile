@@ -3,6 +3,7 @@ FROM scratch AS ctx
 
 COPY build /build
 COPY system /system
+COPY cosign.pub /system/usr/share/pki/containers/atomicos.pub
 # Copy homebrew tarball from brew OCI image
 COPY --from=ghcr.io/ublue-os/brew@sha256:1272e7f46b34e4212dcf01d356ef25612762a328c94ac0c04920c8585a2b98cf /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
 

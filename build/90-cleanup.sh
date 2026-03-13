@@ -39,3 +39,8 @@ if [[ $VALIDATION_FAILED -eq 1 ]]; then
 	echo "Build failed: third-party repos left enabled"
 	exit 1
 fi
+
+# Symlink /usr/local and /opt to /var so they are writable on bootc
+rm -rfv /opt /usr/local
+ln -s /var/usrlocal /usr/local
+ln -s /var/opt /opt
