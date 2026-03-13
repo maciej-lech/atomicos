@@ -24,7 +24,9 @@ VALIDATION_FAILED=0
 for repo in /etc/yum.repos.d/*.repo; do
 	[[ -f "$repo" ]] || continue
 	basename_repo=$(basename "$repo")
-	[[ "$basename_repo" == fedora*.repo ]] && continue
+	[[ "$basename_repo" == fedora.repo ]] && continue
+	[[ "$basename_repo" == fedora-updates*.repo ]] && continue
+	[[ "$basename_repo" == fedora-cisco-openh264.repo ]] && continue
 	if grep -q "^enabled=1" "$repo" 2>/dev/null; then
 		echo "ERROR: Enabled repo found: $(basename "$repo")"
 		grep -B5 "^enabled=1" "$repo"

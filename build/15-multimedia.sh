@@ -23,4 +23,4 @@ dnf5 install -y \
 	libva-utils \
 	pipewire-libs-extra
 
-dnf5 config-manager setopt fedora-multimedia.enabled=0
+sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/fedora-multimedia.repo
