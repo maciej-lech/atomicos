@@ -6,27 +6,27 @@ set -eoux pipefail
 source /ctx/build/copr-helpers.sh
 
 dnf5 install -y \
-  accountsservice \
-  adw-gtk3-theme \
-  adwaita-cursor-theme \
-  adwaita-icon-theme \
-  adwaita-icon-theme-legacy \
-  gcr \
-  gnome-keyring \
-  gnome-keyring-pam \
-  hicolor-icon-theme \
-  kf6-kimageformats \
-  libadwaita \
-  libportal \
-  libportal-gtk4 \
-  pinentry-gnome3 \
-  qadwaitadecorations-qt5 \
-  qt6ct \
-  sound-theme-freedesktop \
-  xdg-desktop-portal-gnome \
-  xdg-desktop-portal-wlr \
-  xdg-terminal-exec \
-  xdg-user-dirs
+	accountsservice \
+	adw-gtk3-theme \
+	adwaita-cursor-theme \
+	adwaita-icon-theme \
+	adwaita-icon-theme-legacy \
+	gcr \
+	gnome-keyring \
+	gnome-keyring-pam \
+	hicolor-icon-theme \
+	kf6-kimageformats \
+	libadwaita \
+	libportal \
+	libportal-gtk4 \
+	pinentry-gnome3 \
+	qadwaitadecorations-qt5 \
+	qt6ct \
+	sound-theme-freedesktop \
+	xdg-desktop-portal-gnome \
+	xdg-desktop-portal-wlr \
+	xdg-terminal-exec \
+	xdg-user-dirs
 
 copr_install_isolated "scottames/ghostty" ghostty
 
@@ -34,9 +34,8 @@ copr_install_isolated "scottames/ghostty" ghostty
 dnf5 -y copr enable avengemedia/dms-git
 dnf5 -y copr disable avengemedia/dms-git
 dnf5 -y install \
-  --enablerepo="copr:copr.fedorainfracloud.org:avengemedia:dms-git" \
-  --enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
-  cliphist dms dms-greeter niri waypipe
+	--enablerepo="copr:copr.fedorainfracloud.org:avengemedia:dms-git" \
+	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
+	cliphist dms dms-greeter niri waypipe
 
 systemctl enable greetd.service
-
