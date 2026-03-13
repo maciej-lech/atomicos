@@ -16,6 +16,7 @@ rm -rf /run/dnf /run/selinux-policy
 rm -rf /var/lib/dnf
 rm -rf /var/lib/unpackaged
 rm -rf /var/log/*
+rm -rf /boot && mkdir -p /boot
 rm -rf /tmp && mkdir -p /tmp
 
 # Validate no repos are left enabled
