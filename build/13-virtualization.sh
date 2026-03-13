@@ -3,6 +3,7 @@
 set -eoux pipefail
 
 dnf5 install -y \
+  distrobox \
   edk2-ovmf \
   incus \
   incus-agent \

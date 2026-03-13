@@ -3,6 +3,10 @@
 set -eoux pipefail
 
 dnf5 install -y \
+  bcc \
+  bcc-tools \
+  bpftop \
+  bpftrace \
   ccache \
   debugedit \
   dwz \
@@ -13,13 +17,17 @@ dnf5 install -y \
   git-lfs \
   git-subtree \
   git-svn \
-  libxcrypt-compat \
-  mkisofs \
+  iotop-c \
+  nicstat \
+  numactl \
   osbuild \
   osbuild-selinux \
   patch \
+  powerstat \
+  powertop \
   python3-pip \
-  python3-rpm \
-  python3-systemd \
-  schily-libs \
-  subversion
+  subversion \
+  sysprof \
+  sysstat \
+  tiptop \
+  trace-cmd
