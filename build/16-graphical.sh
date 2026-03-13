@@ -28,6 +28,7 @@ dnf5 install -y \
 	wl-mirror \
 	wtype \
 	xdg-desktop-portal-gnome \
+	xdg-desktop-portal-gtk \
 	xdg-desktop-portal-wlr \
 	xdg-terminal-exec \
 	xdg-user-dirs
