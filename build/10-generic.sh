@@ -13,9 +13,12 @@ dnf5 install -y \
 	bolt \
 	bpftop \
 	bpftrace \
+	brightnessctl \
 	colord-gtk4 \
 	cups-pk-helper \
 	ddcutil \
+	dracut-network \
+	dracut-squash \
 	evtest \
 	fastfetch \
 	fish \
@@ -30,6 +33,7 @@ dnf5 install -y \
 	hplip \
 	htop \
 	iotop-c \
+	irqbalance \
 	jetbrains-mono-fonts-all \
 	just \
 	kernel-tools \

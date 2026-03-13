@@ -1,0 +1,10 @@
+[Unit]
+Description=Automount removable media
+Documentation=https://github.com/coldfix/udiskie
+
+[Service]
+ExecStart=/usr/bin/udiskie
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

@@ -11,6 +11,7 @@ dnf5 install -y \
 	adwaita-cursor-theme \
 	adwaita-icon-theme \
 	adwaita-icon-theme-legacy \
+	foot \
 	gcr \
 	gnome-keyring \
 	gnome-keyring-pam \
@@ -23,6 +24,9 @@ dnf5 install -y \
 	qadwaitadecorations-qt5 \
 	qt6ct \
 	sound-theme-freedesktop \
+	udiskie \
+	wl-mirror \
+	wtype \
 	xdg-desktop-portal-gnome \
 	xdg-desktop-portal-wlr \
 	xdg-terminal-exec \
