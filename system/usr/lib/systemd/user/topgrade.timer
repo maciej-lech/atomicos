@@ -1,0 +1,10 @@
+[Unit]
+Description=Topgrade User Update Timer
+
+[Timer]
+OnCalendar=*-*-* 05:30:00
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,6 @@
+[misc]
+only = ["system"]
+allow_root = true
+
+[linux]
+bootc = true

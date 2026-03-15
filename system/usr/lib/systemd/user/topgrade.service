@@ -1,0 +1,9 @@
+[Unit]
+Description=Topgrade User Update Oneshot Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment="PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:%h/.local/bin:/usr/local/bin:/usr/bin"
+ExecStart=/usr/bin/topgrade --yes
