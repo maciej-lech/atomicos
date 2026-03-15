@@ -4,6 +4,8 @@ set -eoux pipefail
 
 cp -r /ctx/system/. /
 
+glib-compile-schemas /usr/share/glib-2.0/schemas
+
 systemctl enable brew-setup.service
 systemctl enable flatpak-add-flathub-repos.service
 systemctl enable flatpak-nuke-fedora.service
