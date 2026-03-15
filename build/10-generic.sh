@@ -68,6 +68,3 @@ dnf5 install -y \
 copr_install_isolated "fcsm/tmuxinator" tmuxinator
 copr_install_isolated "che/nerd-fonts" nerd-fonts
 copr_install_isolated "lilay/topgrade" topgrade
-# topgrade: system service for bootc, user service for flatpak/brew
-systemctl enable topgrade.timer
-systemctl --global enable topgrade.timer

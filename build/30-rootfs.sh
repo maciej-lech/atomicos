@@ -10,3 +10,6 @@ systemctl enable flatpak-nuke-fedora.service
 systemctl enable incus-workaround.service
 systemctl enable libvirt-workaround.service
 systemctl enable swtpm-workaround.service
+# topgrade: system service for bootc, user service for flatpak/brew
+systemctl enable topgrade.timer
+systemctl --global enable topgrade.timer
