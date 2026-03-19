@@ -3,7 +3,7 @@ Description=Automount removable media
 Documentation=https://github.com/coldfix/udiskie
 
 [Service]
-ExecStart=/usr/bin/udiskie
+ExecStart=/usr/bin/udiskie --smart-tray
 Restart=on-failure
 
 [Install]

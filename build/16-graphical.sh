@@ -18,6 +18,7 @@ dnf5 install -y \
 	hicolor-icon-theme \
 	kf6-kimageformats \
 	libadwaita \
+	libappindicator-gtk3 \
 	libportal \
 	libportal-gtk4 \
 	pinentry-gnome3 \
