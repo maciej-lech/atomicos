@@ -15,3 +15,4 @@ systemctl enable swtpm-workaround.service
 # topgrade: system service for bootc, user service for flatpak/brew
 systemctl enable topgrade.timer
 systemctl --global enable topgrade.timer
+systemctl --global enable udiskie.service
