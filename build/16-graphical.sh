@@ -21,6 +21,7 @@ dnf5 install -y \
 	libappindicator-gtk3 \
 	libportal \
 	libportal-gtk4 \
+	nautilus \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6ct \
