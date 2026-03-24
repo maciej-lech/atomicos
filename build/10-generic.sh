@@ -21,10 +21,12 @@ dnf5 install -y \
 	dracut-squash \
 	evtest \
 	fastfetch \
+	fd-find \
 	fish \
 	foo2zjs \
 	fprintd \
 	fprintd-pam \
+	fzf \
 	google-noto-sans-cjk-fonts \
 	gum \
 	hdparm \
@@ -47,6 +49,7 @@ dnf5 install -y \
 	powerstat \
 	powertop \
 	pv \
+	ripgrep \
 	setools-console \
 	setroubleshoot-plugins \
 	setroubleshoot-server \
@@ -63,7 +66,14 @@ dnf5 install -y \
 	wl-clipboard \
 	ydotool \
 	yubikey-manager \
-	zenity
+	zenity \
+	zoxide
+
+dnf5 -y copr enable lihaohong/yazi
+dnf5 -y copr disable lihaohong/yazi
+dnf5 -y install --setopt=install_weak_deps=False \
+	--enablerepo="copr:copr.fedorainfracloud.org:lihaohong:yazi" \
+	yazi
 
 copr_install_isolated "fcsm/tmuxinator" tmuxinator
 copr_install_isolated "che/nerd-fonts" nerd-fonts
