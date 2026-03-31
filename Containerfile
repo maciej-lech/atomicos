@@ -5,7 +5,7 @@ COPY build /build
 COPY system /system
 COPY cosign.pub /system/usr/share/pki/containers/atomicos.pub
 # Copy homebrew tarball from brew OCI image
-COPY --from=ghcr.io/ublue-os/brew@sha256:261466d0f12c0044d322b0dc193a08ec2efeed46abb4fb0ef87b9c8421f81ee2 /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
+COPY --from=ghcr.io/ublue-os/brew@sha256:74c4b1e39837d1c4a6f850c577492f2d2a5e1d987d44c64798d24fdb12ab05a8 /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
 
 # Fedora 44 base-atomic, no DE
 FROM quay.io/fedora-ostree-desktops/base-atomic:44@sha256:4282b63b535cfe35c3bc198cdd837da373272985b5478c8ded80360abb81478b
