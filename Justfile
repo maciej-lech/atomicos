@@ -1,6 +1,6 @@
 export image_name := env("IMAGE_NAME", "atomicos")
 export default_tag := env("DEFAULT_TAG", "stable")
-export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest@sha256:37b0009b2e1610937fe24707ced2305be66650f7958e26f8749b250a2fbd0c72")
+export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest@sha256:a181d33843e06dee1f49c6351843957b760b2d962154563e688a0fdeb8fa553c")
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
