@@ -14,6 +14,7 @@ dnf5 install -y \
 	bpftop \
 	bpftrace \
 	brightnessctl \
+	btop \
 	colord-gtk4 \
 	cups-pk-helper \
 	ddcutil \
