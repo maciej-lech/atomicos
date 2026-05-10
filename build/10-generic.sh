@@ -41,6 +41,7 @@ dnf5 install -y \
 	just \
 	kernel-tools \
 	lm_sensors \
+	lshw \
 	nicstat \
 	numactl \
 	oddjob-mkhomedir \
