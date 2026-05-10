@@ -19,6 +19,7 @@ dnf5 install -y \
 	kf6-kimageformats \
 	libadwaita \
 	libappindicator-gtk3 \
+	libayatana-appindicator-gtk3 \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
