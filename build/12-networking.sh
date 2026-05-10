@@ -13,6 +13,7 @@ dnf5 install -y \
 	NetworkManager-ppp \
 	NetworkManager-ssh \
 	NetworkManager-team \
+	NetworkManager-tui \
 	NetworkManager-vpnc \
 	nm-connection-editor \
 	samba \
