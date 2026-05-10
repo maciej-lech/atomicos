@@ -8,6 +8,7 @@ dnf5 install -y \
 	dwz \
 	elfutils \
 	flatpak-builder \
+	gcc-c++ \
 	gdb-minimal \
 	git-credential-libsecret \
 	git-lfs \
