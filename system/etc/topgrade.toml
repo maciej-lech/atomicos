@@ -1,6 +1,7 @@
 [misc]
-only = ["system"]
-allow_root = true
+only = ["system", "flatpak", "brew_formula", "brew_cask"]
+no_self_update = true
+set_title = false
 
 [linux]
 bootc = true

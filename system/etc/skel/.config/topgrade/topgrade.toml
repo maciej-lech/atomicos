@@ -1,2 +1,0 @@
-[misc]
-only = ["flatpak", "brew_formula", "brew_cask"]
