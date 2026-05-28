@@ -19,3 +19,6 @@ dnf5 install -y \
 	patch \
 	python3-pip \
 	subversion
+
+# Required by code-on-incus nft monitoring
+dnf5 install -y systemd-devel
