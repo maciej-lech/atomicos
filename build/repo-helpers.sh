@@ -24,7 +24,15 @@ copr_install_isolated() {
 }
 
 terra_install_isolated() {
-	local packages=("$@")
+	local dnf_opts=()
+	local packages=()
+	for arg in "$@"; do
+		if [[ "$arg" == --* ]]; then
+			dnf_opts+=("$arg")
+		else
+			packages+=("$arg")
+		fi
+	done
 
 	if [[ ${#packages[@]} -eq 0 ]]; then
 		echo "ERROR: No packages specified for terra_install_isolated"
@@ -39,6 +47,6 @@ terra_install_isolated() {
 	fi
 
 	echo "Installing ${packages[*]} from Terra (isolated)"
-	dnf5 -y install --enablerepo=terra "${packages[@]}"
+	dnf5 -y install --enablerepo=terra "${dnf_opts[@]}" "${packages[@]}"
 	echo "Installed ${packages[*]} from Terra"
 }
