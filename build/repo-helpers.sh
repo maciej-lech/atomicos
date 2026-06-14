@@ -2,6 +2,29 @@
 
 set -euo pipefail
 
+dnf_repo_install_isolated() {
+	local repo_url="$1"
+	shift
+
+	if [[ -z "$repo_url" || $# -eq 0 ]]; then
+		echo "ERROR: dnf_repo_install_isolated requires <repo_url> <dnf args...>"
+		return 1
+	fi
+
+	local repo_file
+	repo_file=$(basename "$repo_url")
+
+	if [[ ! -f "/etc/yum.repos.d/$repo_file" ]]; then
+		echo "Adding repo $repo_file (disabled by default)"
+		dnf5 config-manager addrepo --from-repofile="$repo_url"
+		sed -i 's/^enabled=.*$/enabled=0/' "/etc/yum.repos.d/$repo_file"
+	fi
+
+	echo "Installing from $repo_file (isolated): $*"
+	dnf5 -y install "$@"
+	echo "Installed from $repo_file"
+}
+
 copr_install_isolated() {
 	local copr_name="$1"
 	shift

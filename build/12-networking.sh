@@ -2,6 +2,9 @@
 
 set -eoux pipefail
 
+# shellcheck source=/dev/null
+source /ctx/build/repo-helpers.sh
+
 dnf5 install -y \
 	davfs2 \
 	dhcpcd \
@@ -27,8 +30,6 @@ dnf5 install -y \
 	socat \
 	usbip
 
-dnf5 config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-dnf5 install -y tailscale
-sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/tailscale.repo
-
+dnf_repo_install_isolated https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
+	--enablerepo=tailscale-stable tailscale
 systemctl enable tailscaled.service
