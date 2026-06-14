@@ -3,7 +3,7 @@
 set -eoux pipefail
 
 # shellcheck source=/dev/null
-source /ctx/build/copr-helpers.sh
+source /ctx/build/repo-helpers.sh
 
 dnf5 install -y \
 	accountsservice \
@@ -37,6 +37,7 @@ dnf5 install -y \
 	xdg-user-dirs
 
 copr_install_isolated "scottames/ghostty" ghostty
+terra_install_isolated satty
 
 # Can't use copr_install_isolated because we need to enable the danklinux copr dependency
 dnf5 -y copr enable avengemedia/dms-git

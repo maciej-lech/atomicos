@@ -3,7 +3,7 @@
 set -eoux pipefail
 
 # shellcheck source=/dev/null
-source /ctx/build/copr-helpers.sh
+source /ctx/build/repo-helpers.sh
 
 dnf5 install -y \
 	7zip \
