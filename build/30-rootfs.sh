@@ -11,7 +11,6 @@ systemctl enable flatpak-add-flathub-repos.service
 systemctl enable flatpak-nuke-fedora.service
 systemctl enable incus-workaround.service
 systemctl enable libvirt-workaround.service
-systemctl enable swtpm-workaround.service
 # topgrade: single user-side run; bootc upgrade allowed passwordless via sudoers
 systemctl mask topgrade.service topgrade.timer
 systemctl --global enable topgrade.timer
