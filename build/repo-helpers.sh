@@ -28,7 +28,16 @@ dnf_repo_install_isolated() {
 copr_install_isolated() {
 	local copr_name="$1"
 	shift
-	local packages=("$@")
+
+	local dnf_opts=()
+	local packages=()
+	for arg in "$@"; do
+		if [[ "$arg" == --* ]]; then
+			dnf_opts+=("$arg")
+		else
+			packages+=("$arg")
+		fi
+	done
 
 	if [[ ${#packages[@]} -eq 0 ]]; then
 		echo "ERROR: No packages specified for copr_install_isolated"
@@ -41,7 +50,7 @@ copr_install_isolated() {
 
 	dnf5 -y copr enable "$copr_name"
 	dnf5 -y copr disable "$copr_name"
-	dnf5 -y install --enablerepo="$repo_id" "${packages[@]}"
+	dnf5 -y install --enablerepo="$repo_id" "${dnf_opts[@]}" "${packages[@]}"
 
 	echo "Installed ${packages[*]} from $copr_name"
 }

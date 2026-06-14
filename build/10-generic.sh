@@ -71,7 +71,7 @@ dnf5 install -y \
 	zenity \
 	zoxide
 
-terra_install_isolated --setopt=install_weak_deps=False yazi
-copr_install_isolated "fcsm/tmuxinator" tmuxinator
 copr_install_isolated "che/nerd-fonts" nerd-fonts
+copr_install_isolated "fcsm/tmuxinator" tmuxinator
 copr_install_isolated "lilay/topgrade" topgrade
+terra_install_isolated --setopt=install_weak_deps=False yazi
