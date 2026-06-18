@@ -8,7 +8,7 @@ COPY cosign.pub /system/usr/share/pki/containers/atomicos.pub
 COPY --from=ghcr.io/ublue-os/brew@sha256:0b100324e28048639f40607c19d7a063f9930b8c396a6d66f7dcfe1617240f65 /system_files/usr/share/homebrew.tar.zst /system/usr/share/homebrew.tar.zst
 
 # Fedora 44 base-atomic, no DE
-FROM quay.io/fedora-ostree-desktops/base-atomic:44@sha256:97bc460ef867250c4fd66e456b183295d4581286a2a213e7ab7f60112e1a1e27
+FROM quay.io/fedora-ostree-desktops/base-atomic:44@sha256:7546bc3f8d994bd11fbe395bcb70913a241b8b08129a00bef912d2e749d34c3d
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
