@@ -53,6 +53,33 @@ build $target_image=image_name $tag=default_tag:
         --tag "${target_image}:${tag}" \
         .
 
+# Split the image into more layers for smaller delta updates
+ostree-rechunk $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+
+    set -xeuo pipefail
+
+    # https://github.com/coreos/rpm-ostree/issues/5346 - must run as root
+    if [[ ! "${UID}" -eq "0" ]]; then
+        echo "This needs to run as root."
+        exit 1
+    fi
+
+    RPM_OSTREE_CHUNKER_IMAGE="quay.io/fedora/fedora-bootc:latest"
+
+    podman run --rm \
+        --pull=newer \
+        --privileged \
+        -v "/var/lib/containers:/var/lib/containers" \
+        --entrypoint /usr/bin/rpm-ostree \
+        "${RPM_OSTREE_CHUNKER_IMAGE}" \
+        compose build-chunked-oci \
+        --max-layers 127 \
+        --format-version=2 \
+        --bootc \
+        --from "localhost/${target_image}:${tag}" \
+        --output containers-storage:"localhost/${target_image}:${tag}"
+
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
 #              If the image is found, it loads it into rootful podman. If the image is not found, it pulls it from the repository.
