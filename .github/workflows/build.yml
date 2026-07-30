@@ -125,15 +125,16 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        # https://github.com/containers/container-libs/issues/388
         with:
-          cosign-release: 'v3.1.2'
+          # TODO: unpin once containers/image can verify cosign v3 signatures.
+          # cosign v3 stores signatures via the OCI referrers API; bootc/skopeo
+          # only read the legacy tag-based `<digest>.sig` attachment, which
+          # cosign v2 writes by default. Remove this pin (and the renovate rule)
+          # when https://github.com/containers/container-libs/issues/388 lands.
+          cosign-release: 'v2.6.4'
 
       - name: Sign container image
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        # legacy mode writes the tag-based .sig attachment that bootc/skopeo
-        # reads; cosign v3 defaults to the OCI referrers API, which containers/image
-        # cannot find. https://github.com/containers/container-libs/issues/388
-        run: cosign sign -y --registry-referrers-mode=legacy --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
+        run: cosign sign -y --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}

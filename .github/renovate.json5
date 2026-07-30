@@ -76,5 +76,15 @@
       "matchDepTypes": ["action"],
       "matchFileNames": [".github/workflows/claude*.yml"],
     },
+    {
+      // TODO: remove this block (and the cosign-release pin in build.yml) once
+      // https://github.com/containers/container-libs/issues/388 lands. cosign v3
+      // signs via the OCI referrers API, which bootc/skopeo cannot verify; stay
+      // on v2 which writes the legacy tag-based `<digest>.sig` attachment.
+      "description": "Hold cosign at v2 until containers/image can verify v3 signatures",
+      "enabled": false,
+      "matchPackageNames": ["sigstore/cosign"],
+      "matchUpdateTypes": ["major"],
+    },
   ]
 }
