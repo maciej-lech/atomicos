@@ -131,6 +131,9 @@ jobs:
 
       - name: Sign container image
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        run: cosign sign -y --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
+        # legacy mode writes the tag-based .sig attachment that bootc/skopeo
+        # reads; cosign v3 defaults to the OCI referrers API, which containers/image
+        # cannot find. https://github.com/containers/container-libs/issues/388
+        run: cosign sign -y --registry-referrers-mode=legacy --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
