@@ -65,6 +65,7 @@ dnf5 install -y \
 	tuned \
 	tuned-ppd \
 	util-linux-script \
+	vulkan-tools \
 	wl-clipboard \
 	ydotool \
 	yubikey-manager \
