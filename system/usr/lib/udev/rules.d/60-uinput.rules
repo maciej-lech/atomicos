@@ -1,0 +1,4 @@
+# Grant the active-seat user rw access to /dev/uinput so ydotoold can run
+# without root. GROUP/MODE covers `input`-group members; uaccess grants the
+# logged-in seat user an ACL (no group membership required).
+KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", TAG+="uaccess", OPTIONS+="static_node=uinput"
