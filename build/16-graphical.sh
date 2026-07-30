@@ -39,6 +39,11 @@ dnf5 install -y \
 copr_install_isolated "scottames/ghostty" ghostty
 terra_install_isolated satty
 
+# renovate: datasource=github-releases depName=cjpais/handy extractVersion=^v(?<version>.+)$
+HANDY_VERSION="0.9.4"
+dnf5 install -y \
+	"https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/Handy-${HANDY_VERSION}-1.x86_64.rpm"
+
 copr_install_isolated "avengemedia/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
 	cliphist dms dms-greeter niri waypipe

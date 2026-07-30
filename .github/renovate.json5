@@ -32,6 +32,16 @@
       datasourceTemplate: 'docker',
       versioningTemplate: 'docker',
     },
+    {
+      customType: 'regex',
+      description: 'Match versioned GitHub release artifacts in build scripts',
+      managerFilePatterns: [
+        '/^build/.*\\.sh$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+\\w+_VERSION="(?<currentValue>[^"]+)"',
+      ],
+    },
   ],
 
   "packageRules": [
