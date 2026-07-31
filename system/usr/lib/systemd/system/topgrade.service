@@ -1,8 +1,0 @@
-[Unit]
-Description=Topgrade System Update Oneshot Service
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/topgrade --yes --config /etc/topgrade.toml
