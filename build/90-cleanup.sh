@@ -12,9 +12,11 @@ done
 
 dnf5 clean all
 
+# shellcheck disable=SC2114
 rm -rf /boot && mkdir -p /boot
 rm -rf /tmp && mkdir -p /tmp
 rm -rf /run && mkdir -p /run
+# shellcheck disable=SC2115
 rm -rf /var/* && mkdir /var/tmp
 
 # Validate no repos are left enabled
@@ -39,6 +41,7 @@ if [[ $VALIDATION_FAILED -eq 1 ]]; then
 fi
 
 # Symlink /usr/local and /opt to /var so they are writable on bootc
+# shellcheck disable=SC2114
 rm -rfv /opt /usr/local
 ln -s /var/usrlocal /usr/local
 ln -s /var/opt /opt
