@@ -12,7 +12,6 @@ dnf5 install -y \
 	fsverity-utils \
 	fuse-encfs \
 	gvfs \
-	gvfs-archive \
 	gvfs-fuse \
 	gvfs-gphoto2 \
 	gvfs-mtp \
