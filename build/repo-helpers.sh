@@ -2,11 +2,39 @@
 
 set -euo pipefail
 
+dnf_var() {
+	dnf5 --dump-variables | awk -v key="$1" '$1 == key { print $3; exit }'
+}
+
+repo_baseurl_available() {
+	local repo_file="$1"
+	local url
+
+	url=$(sed -n 's/^baseurl=//p' "$repo_file" | head -1)
+	[[ -n "$url" ]] || return 0
+
+	url="${url//\$releasever/$(dnf_var releasever)}"
+	url="${url//\$basearch/$(dnf_var basearch)}"
+
+	curl -fsL --retry 2 -o /dev/null "${url%/}/repodata/repomd.xml"
+}
+
+# --fallback-repo-releasever=N rewrites $releasever in the repo file when the
+# vendor publishes nothing for the release being built.
 dnf_repo_install_isolated() {
 	local repo_url="$1"
 	shift
 
-	if [[ -z "$repo_url" || $# -eq 0 ]]; then
+	local fallback_releasever=""
+	local dnf_args=()
+	for arg in "$@"; do
+		case "$arg" in
+		--fallback-repo-releasever=*) fallback_releasever="${arg#--fallback-repo-releasever=}" ;;
+		*) dnf_args+=("$arg") ;;
+		esac
+	done
+
+	if [[ -z "$repo_url" || ${#dnf_args[@]} -eq 0 ]]; then
 		echo "ERROR: dnf_repo_install_isolated requires <repo_url> <dnf args...>"
 		return 1
 	fi
@@ -17,26 +45,33 @@ dnf_repo_install_isolated() {
 	if [[ ! -f "/etc/yum.repos.d/$repo_file" ]]; then
 		echo "Adding repo $repo_file (disabled by default)"
 		dnf5 config-manager addrepo --from-repofile="$repo_url"
+		if [[ -n "$fallback_releasever" ]] && ! repo_baseurl_available "/etc/yum.repos.d/$repo_file"; then
+			echo "$repo_file has nothing for $(dnf_var releasever), falling back to Fedora $fallback_releasever"
+			sed -i "s/[$]releasever/$fallback_releasever/g" "/etc/yum.repos.d/$repo_file"
+		fi
 		sed -i 's/^enabled=.*$/enabled=0/' "/etc/yum.repos.d/$repo_file"
 	fi
 
-	echo "Installing from $repo_file (isolated): $*"
-	dnf5 -y install "$@"
+	echo "Installing from $repo_file (isolated): ${dnf_args[*]}"
+	dnf5 -y install "${dnf_args[@]}"
 	echo "Installed from $repo_file"
 }
 
+# --fallback-copr-releasever=N enables the fedora-N chroot when the project has no
+# chroot for the release being built.
 copr_install_isolated() {
 	local copr_name="$1"
 	shift
 
+	local fallback_releasever=""
 	local dnf_opts=()
 	local packages=()
 	for arg in "$@"; do
-		if [[ "$arg" == --* ]]; then
-			dnf_opts+=("$arg")
-		else
-			packages+=("$arg")
-		fi
+		case "$arg" in
+		--fallback-copr-releasever=*) fallback_releasever="${arg#--fallback-copr-releasever=}" ;;
+		--*) dnf_opts+=("$arg") ;;
+		*) packages+=("$arg") ;;
+		esac
 	done
 
 	if [[ ${#packages[@]} -eq 0 ]]; then
@@ -48,7 +83,15 @@ copr_install_isolated() {
 
 	echo "Installing ${packages[*]} from COPR $copr_name (isolated)"
 
-	dnf5 -y copr enable "$copr_name"
+	if ! dnf5 -y copr enable "$copr_name"; then
+		if [[ -z "$fallback_releasever" ]]; then
+			return 1
+		fi
+		local chroot
+		chroot="fedora-$fallback_releasever-$(dnf_var basearch)"
+		echo "COPR $copr_name has no chroot for this release, falling back to $chroot"
+		dnf5 -y copr enable "$copr_name" "$chroot"
+	fi
 	dnf5 -y copr disable "$copr_name"
 	dnf5 -y install --enablerepo="$repo_id" "${dnf_opts[@]}" "${packages[@]}"
 
