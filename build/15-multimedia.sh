@@ -2,25 +2,20 @@
 
 set -eoux pipefail
 
-dnf5 config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo
-dnf5 config-manager setopt fedora-multimedia.priority=90
+# shellcheck source=/dev/null
+source /ctx/build/repo-helpers.sh
 
-dnf5 swap -y ffmpeg-free ffmpeg --allowerasing
-dnf5 swap -y libavcodec-free libavcodec --allowerasing
-dnf5 swap -y libavdevice-free libavdevice --allowerasing
-dnf5 swap -y libavfilter-free libavfilter --allowerasing
-dnf5 swap -y libavformat-free libavformat --allowerasing
-dnf5 swap -y libavutil-free libavutil --allowerasing
-dnf5 swap -y libpostproc-free libpostproc --allowerasing
-dnf5 swap -y libswresample-free libswresample --allowerasing
-dnf5 swap -y libswscale-free libswscale --allowerasing
+# libavcodec-freeworld layers the patent-encumbered codecs on top of Fedora's
+# ffmpeg-free. If a fully-featured ffmpeg is ever needed, replace the Fedora
+# stack instead: dnf5 swap -y ffmpeg-free ffmpeg --allowerasing
+# rpmfusion's ffmpeg-libs conflicts with the libav*-free packages, so that one
+# swap covers the whole set.
+rpmfusion_install_isolated \
+	libavcodec-freeworld \
+	libva-intel-driver
 
 dnf5 install -y \
 	alsa-firmware \
 	ffmpegthumbnailer \
-	intel-vaapi-driver \
 	libheif \
-	libva-utils \
-	pipewire-libs-extra
-
-sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/fedora-multimedia.repo
+	libva-utils

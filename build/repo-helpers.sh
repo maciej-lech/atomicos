@@ -98,6 +98,41 @@ copr_install_isolated() {
 	echo "Installed ${packages[*]} from $copr_name"
 }
 
+# RPM Fusion ships no plain repo file, only a release RPM that also carries the
+# GPG keys its repo files point at.
+rpmfusion_install_isolated() {
+	local dnf_opts=()
+	local packages=()
+	for arg in "$@"; do
+		if [[ "$arg" == --* ]]; then
+			dnf_opts+=("$arg")
+		else
+			packages+=("$arg")
+		fi
+	done
+
+	if [[ ${#packages[@]} -eq 0 ]]; then
+		echo "ERROR: No packages specified for rpmfusion_install_isolated"
+		return 1
+	fi
+
+	if [[ ! -f /etc/yum.repos.d/rpmfusion-free.repo ]]; then
+		echo "Installing RPM Fusion free release (disabled by default)"
+		dnf5 -y install \
+			"https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E '%{fedora}').noarch.rpm"
+		sed -i 's/^enabled=1$/enabled=0/' /etc/yum.repos.d/rpmfusion-free*.repo
+	fi
+
+	local enable_repos=(--enablerepo=rpmfusion-free --enablerepo=rpmfusion-free-updates)
+	if [[ -f /etc/yum.repos.d/rpmfusion-free-rawhide.repo ]]; then
+		enable_repos=(--enablerepo=rpmfusion-free-rawhide)
+	fi
+
+	echo "Installing ${packages[*]} from RPM Fusion (isolated)"
+	dnf5 -y install "${enable_repos[@]}" "${dnf_opts[@]}" "${packages[@]}"
+	echo "Installed ${packages[*]} from RPM Fusion"
+}
+
 terra_install_isolated() {
 	local dnf_opts=()
 	local packages=()
