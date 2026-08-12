@@ -29,14 +29,15 @@ copr_install_isolated() {
 	local copr_name="$1"
 	shift
 
+	local chroot=()
 	local dnf_opts=()
 	local packages=()
 	for arg in "$@"; do
-		if [[ "$arg" == --* ]]; then
-			dnf_opts+=("$arg")
-		else
-			packages+=("$arg")
-		fi
+		case "$arg" in
+		--chroot=*) chroot=("${arg#--chroot=}") ;;
+		--*) dnf_opts+=("$arg") ;;
+		*) packages+=("$arg") ;;
+		esac
 	done
 
 	if [[ ${#packages[@]} -eq 0 ]]; then
@@ -48,7 +49,7 @@ copr_install_isolated() {
 
 	echo "Installing ${packages[*]} from COPR $copr_name (isolated)"
 
-	dnf5 -y copr enable "$copr_name"
+	dnf5 -y copr enable "$copr_name" "${chroot[@]}"
 	dnf5 -y copr disable "$copr_name"
 	dnf5 -y install --enablerepo="$repo_id" "${dnf_opts[@]}" "${packages[@]}"
 

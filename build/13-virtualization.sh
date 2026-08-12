@@ -30,8 +30,9 @@ dnf5 install -y \
 
 systemctl enable podman.socket
 
+# TODO: remove --releasever=44 once Docker publishes F45 packages
 dnf_repo_install_isolated https://download.docker.com/linux/fedora/docker-ce.repo \
-	--enablerepo=docker-ce-stable \
+	--enablerepo=docker-ce-stable --releasever=44 \
 	containerd.io \
 	docker-buildx-plugin \
 	docker-ce \
