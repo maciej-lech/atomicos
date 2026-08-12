@@ -72,8 +72,7 @@ dnf5 install -y \
 	zenity \
 	zoxide
 
-# che/nerd-fonts has no chroot past fedora-44; the fonts are noarch
-copr_install_isolated "che/nerd-fonts" --fallback-copr-releasever=44 nerd-fonts
+copr_install_isolated "che/nerd-fonts" nerd-fonts
 copr_install_isolated "fcsm/tmuxinator" tmuxinator
 copr_install_isolated "lilay/topgrade" topgrade
 terra_install_isolated --setopt=install_weak_deps=False yazi
