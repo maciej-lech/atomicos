@@ -26,6 +26,7 @@ for repo in /etc/yum.repos.d/*.repo; do
 	[[ -f "$repo" ]] || continue
 	basename_repo=$(basename "$repo")
 	[[ "$basename_repo" == fedora.repo ]] && continue
+	[[ "$basename_repo" == fedora-rawhide.repo ]] && continue
 	[[ "$basename_repo" == fedora-updates*.repo ]] && continue
 	[[ "$basename_repo" == fedora-cisco-openh264.repo ]] && continue
 	if grep -q "^enabled=1" "$repo" 2>/dev/null; then
