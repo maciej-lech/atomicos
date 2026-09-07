@@ -56,6 +56,10 @@
       "matchUpdateTypes": ["digest"],
       "matchFileNames": ["Containerfile"],
       "labels": ["renovate", "automerge"],
+      // Override the global rebaseWhen: "never". Base image manifests expire
+      // after 28 days on quay, so a branch left un-rebased here rots into an
+      // unbuildable pin instead of merely going stale.
+      "rebaseWhen": "auto",
     },
     {
       "description": "Disable automerge for all rechunk updates to allow manual review",
