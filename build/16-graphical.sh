@@ -47,4 +47,8 @@ dnf5 install -y \
 copr_install_isolated "avengemedia/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
 	cliphist dms dms-greeter niri waypipe
+# greetd ships its PAM stack in /usr/lib/pam.d, so dms-greeter's %post finds no
+# /etc/pam.d/greetd and writes a stripped-down one that shadows it, losing the
+# keyring unlock at login
+rm -f /etc/pam.d/greetd
 systemctl enable greetd.service
