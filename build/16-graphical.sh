@@ -14,8 +14,6 @@ dnf5 install -y \
 	cliphist \
 	foot \
 	gcr \
-	gnome-keyring \
-	gnome-keyring-pam \
 	hicolor-icon-theme \
 	kf6-kimageformats \
 	libadwaita \
@@ -24,6 +22,9 @@ dnf5 install -y \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
+	oo7-daemon \
+	oo7-portal \
+	pam_oo7 \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6-qtimageformats \
@@ -40,7 +41,8 @@ dnf5 install -y \
 	xdg-terminal-exec \
 	xdg-user-dirs
 
-# Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides
+# Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides;
+# gnome-keyring would compete with oo7-daemon for org.freedesktop.secrets
 dnf5 install -y --setopt=install_weak_deps=False niri
 
 copr_install_isolated "scottames/ghostty" ghostty
@@ -81,3 +83,8 @@ systemctl enable greetd.service
 # Both nautilus and dux-files ship a D-Bus activation file for
 # org.freedesktop.FileManager1; keep only the dux-files one.
 rm /usr/share/dbus-1/services/org.freedesktop.FileManager1.service
+
+if rpm -q gnome-keyring; then
+	echo "gnome-keyring is installed and would compete with oo7-daemon" >&2
+	exit 1
+fi
