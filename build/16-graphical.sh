@@ -13,8 +13,6 @@ dnf5 install -y \
 	adwaita-icon-theme-legacy \
 	foot \
 	gcr \
-	gnome-keyring \
-	gnome-keyring-pam \
 	hicolor-icon-theme \
 	kf6-kimageformats \
 	libadwaita \
@@ -23,6 +21,9 @@ dnf5 install -y \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
+	oo7-daemon \
+	oo7-portal \
+	pam_oo7 \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6ct \
@@ -44,8 +45,11 @@ HANDY_VERSION="0.9.6"
 dnf5 install -y \
 	"https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/Handy-${HANDY_VERSION}-1.x86_64.rpm"
 
+# niri Recommends gnome-keyring, which would compete with oo7-daemon for
+# org.freedesktop.secrets
 copr_install_isolated "avengemedia/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
+	--exclude=gnome-keyring \
 	cliphist dms dms-greeter niri waypipe
 # greetd ships its PAM stack in /usr/lib/pam.d, so dms-greeter's %post finds no
 # /etc/pam.d/greetd and writes a stripped-down one that shadows it, losing the
