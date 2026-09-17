@@ -41,8 +41,10 @@ if [[ $VALIDATION_FAILED -eq 1 ]]; then
 	exit 1
 fi
 
-# Symlink /usr/local and /opt to /var so they are writable on bootc
+# Symlink /usr/local and /opt to /var so they are writable on bootc. Keep the
+# targets relative like the base image: bootc's runtime-deps lint resolves $PATH
+# inside the rootfs and rejects absolute symlinks as escaping it.
 # shellcheck disable=SC2114
 rm -rfv /opt /usr/local
-ln -s /var/usrlocal /usr/local
-ln -s /var/opt /opt
+ln -s ../var/usrlocal /usr/local
+ln -s var/opt /opt
