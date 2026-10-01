@@ -55,6 +55,40 @@ build $target_image=image_name $tag=default_tag:
         --tag "${target_image}:${tag}" \
         .
 
+# Split the image into package-based layers for smaller delta updates
+rechunk $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+
+    # The image itself ships rpm-ostree, so it doubles as the chunker
+    GRAPHROOT="$(podman info --format '{{ '{{.Store.GraphRoot}}' }}')"
+
+    # 90-cleanup.sh empties /var, but rpm-ostree needs a disk-backed /var/tmp
+    VARTMP="$(mktemp -p "${PWD}" -d -t _build-rechunk.XXXXXXXXXX)"
+    trap 'podman unshare rm -rf "${VARTMP}"' EXIT
+
+    # build-chunked-oci drops the source labels; carry them over except the
+    # content hashes it regenerates
+    mapfile -t LABELS < <(podman image inspect "${target_image}:${tag}" | jq -r '
+      .[0].Labels | to_entries[]
+      | select(.key | IN("ostree.commit", "ostree.final-diffid", "rpmostree.inputhash") | not)
+      | "--label=\(.key)=\(.value)"')
+
+    podman run --rm --pull=never --privileged \
+      --mount=type=image,src="${target_image}:${tag}",target=/rpm-ostree \
+      --mount=type=bind,src="${VARTMP}",target=/var/tmp,rw \
+      --mount=type=bind,src="${GRAPHROOT}",target=/run/host-container-storage,rw \
+      --mount=type=tmpfs,target=/run/rpm-ostree-storage \
+      --entrypoint /usr/bin/rpm-ostree \
+      "localhost/${target_image}:${tag}" \
+      compose build-chunked-oci \
+      --max-layers 127 \
+      --format-version=2 \
+      --bootc \
+      --rootfs /rpm-ostree \
+      "${LABELS[@]}" \
+      --output "containers-storage:[overlay@/run/host-container-storage+/run/rpm-ostree-storage]localhost/${target_image}:${tag}"
+
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
 #              If the image is found, it loads it into rootful podman. If the image is not found, it pulls it from the repository.
