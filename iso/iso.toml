@@ -1,8 +1,9 @@
+# Keep this kickstart table: without one BIB injects clearpart --all and
+# autopart, wiping the first disk without asking. The bootc origin comes from
+# the image reference the Justfile passes to BIB.
 [customizations.installer.kickstart]
 contents = """
-%post
-bootc switch --mutate-in-place --transport registry ghcr.io/maciej-lech/atomicos:stable
-%end
+# Interactive install: everything is chosen in Anaconda's interface.
 """
 
 [customizations.installer.modules]

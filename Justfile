@@ -1,5 +1,6 @@
 export image_name := env("IMAGE_NAME", "atomicos")
 export default_tag := env("DEFAULT_TAG", "stable")
+export image_registry := env("IMAGE_REGISTRY", "ghcr.io/maciej-lech")
 export bib_image := env("BIB_IMAGE", "ghcr.io/osbuild/bootc-image-builder:latest@sha256:4c58406d86c77023130d985f170098ca9b0d8743cf0a9d2c89d71eeaed08c57c")
 
 alias build-vm := build-qcow2
@@ -125,6 +126,14 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
     args+="--use-librepo=True "
     args+="--rootfs=btrfs"
 
+    # BIB records the bootc origin from the image reference it is given, so an
+    # ISO built from the local tag would install a system tracking localhost/.
+    build_image="${target_image}:${tag}"
+    if [[ "${type}" == "iso" ]]; then
+        build_image="${image_registry}/${image_name}:${tag}"
+        sudo podman tag "${target_image}:${tag}" "${build_image}"
+    fi
+
     BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
 
     sudo podman run \
@@ -139,7 +148,7 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
       -v /var/lib/containers/storage:/var/lib/containers/storage \
       "${bib_image}" \
       ${args} \
-      "${target_image}:${tag}"
+      "${build_image}"
 
     mkdir -p output
     sudo cp -af $BUILDTMP/* output/
