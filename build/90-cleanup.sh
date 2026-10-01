@@ -12,6 +12,15 @@ done
 
 dnf5 clean all
 
+# Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
+# dnf5 history records install times, and font caches embed directory mtimes
+# (ostree zeroes them at deploy time anyway)
+rm -f /usr/lib/sysimage/libdnf5/transaction_history.sqlite*
+for dir in /usr/share/fonts /usr/share/X11/fonts; do
+	[[ -d "$dir" ]] && find "$dir" -type d -exec touch -h -d @0 {} +
+done
+fc-cache -sf
+
 # shellcheck disable=SC2114
 rm -rf /boot && mkdir -p /boot
 rm -rf /tmp && mkdir -p /tmp
