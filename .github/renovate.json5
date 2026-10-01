@@ -22,18 +22,6 @@
     },
     {
       customType: 'regex',
-      description: 'Match container images in Justfile run_args without tag or digest',
-      managerFilePatterns: [
-        '^Justfile$',
-      ],
-      matchStrings: [
-        'run_args\\+=\\((?<packageName>[a-zA-Z0-9._:/-]+):?(?<currentValue>\\S+?)\\)',
-      ],
-      datasourceTemplate: 'docker',
-      versioningTemplate: 'docker',
-    },
-    {
-      customType: 'regex',
       description: 'Match versioned GitHub release artifacts in build scripts',
       managerFilePatterns: [
         '/^build/.*\\.sh$/',
@@ -50,29 +38,15 @@
       "matchUpdateTypes": ["pin", "pinDigest"]
     },
     {
-      "description": "Auto-merge digest updates for base image and trigger build",
+      "description": "Auto-merge digest updates for all container images",
       "automerge": true,
-      "matchManagers": ["dockerfile"],
-      "matchUpdateTypes": ["digest"],
-      "matchFileNames": ["Containerfile"],
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["digest", "pinDigest"],
       "labels": ["renovate", "automerge"],
       // Override the global rebaseWhen: "never". Base image manifests expire
       // after 28 days on quay, so a branch left un-rebased here rots into an
       // unbuildable pin instead of merely going stale.
       "rebaseWhen": "auto",
-    },
-    {
-      "description": "Disable automerge for all rechunk updates to allow manual review",
-      "matchUpdateTypes": ["major", "minor", "patch", "digest", "pinDigest"],
-      "matchPackageNames": ["ghcr.io/hhd-dev/rechunk"],
-      "automerge": false
-    },
-    {
-      "description": "Enable GitHub Actions updates since they are now pinned with SHA",
-      "enabled": true,
-      "matchUpdateTypes": ["digest", "pinDigest", "pin", "major", "minor", "patch"],
-      "matchDepTypes": ["action"],
-      "matchFileNames": [".github/workflows/**.yaml", ".github/workflows/**.yml"],
     },
     {
       "description": "Exclude Claude workflow files from updates to avoid review validation failures",
