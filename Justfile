@@ -2,6 +2,7 @@ export image_name := env("IMAGE_NAME", "atomicos")
 export default_tag := env("DEFAULT_TAG", "stable")
 export image_registry := env("IMAGE_REGISTRY", "ghcr.io/maciej-lech")
 export bib_image := env("BIB_IMAGE", "ghcr.io/osbuild/bootc-image-builder:latest@sha256:4c58406d86c77023130d985f170098ca9b0d8743cf0a9d2c89d71eeaed08c57c")
+export qemu_image := env("QEMU_IMAGE", "ghcr.io/qemus/qemu:7.50@sha256:e7f6fda52503a546fd649670ba46e4bc23dc6dcef275bc3fac48877fbbc430df")
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
@@ -84,17 +85,10 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
         exit 0
     fi
 
-    # Try to resolve the image tag using podman inspect
-    set +e
-    resolved_tag=$(podman inspect -t image "${target_image}:${tag}" | jq -r '.[].RepoTags.[0]')
-    return_code=$?
-    set -e
-
-    USER_IMG_ID=$(podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
-
-    if [[ $return_code -eq 0 ]]; then
+    if podman image exists "${target_image}:${tag}"; then
         # If the image is found, load it into rootful podman
-        ID=$(sudo podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
+        USER_IMG_ID=$(podman images -q "${target_image}:${tag}")
+        ID=$(sudo podman images -q "${target_image}:${tag}")
         if [[ "$ID" != "$USER_IMG_ID" ]]; then
             # If the image ID is not found or different from user, copy the image from user podman to root podman
             COPYTMP=$(mktemp -p "${PWD}" -d -t _build_podman_scp.XXXXXXXXXX)
@@ -135,25 +129,23 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
     fi
 
     BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
+    trap 'sudo rm -rf "${BUILDTMP}"' EXIT
 
     sudo podman run \
       --rm \
-      -it \
       --privileged \
-      --pull=newer \
       --net=host \
       --security-opt label=type:unconfined_t \
-      -v $(pwd)/${config}:/config.toml:ro \
-      -v $BUILDTMP:/output \
+      -v "${PWD}/${config}:/config.toml:ro" \
+      -v "${BUILDTMP}:/output" \
       -v /var/lib/containers/storage:/var/lib/containers/storage \
       "${bib_image}" \
       ${args} \
       "${build_image}"
 
     mkdir -p output
-    sudo cp -af $BUILDTMP/* output/
-    sudo rm -rf $BUILDTMP
-    sudo chown -R $USER:$USER output/
+    sudo cp -af "${BUILDTMP}"/* output/
+    sudo chown -R "$(id -u):$(id -g)" output/
 
 # Podman builds the image from the Containerfile and creates a bootable image
 # Parameters:
@@ -194,11 +186,12 @@ _run-vm $target_image $tag $type $config:
     #!/usr/bin/bash
     set -eoux pipefail
 
-    # Determine the image file based on the type
-    image_file="output/${type}/disk.${type}"
-    if [[ $type == iso ]]; then
-        image_file="output/bootiso/install.iso"
-    fi
+    # BIB output directories follow osbuild export names, not the type
+    case "${type}" in
+        qcow2) image_file="output/qcow2/disk.qcow2"; boot_mount="/boot.qcow2" ;;
+        raw) image_file="output/image/disk.raw"; boot_mount="/boot.img" ;;
+        iso) image_file="output/bootiso/install.iso"; boot_mount="/boot.iso" ;;
+    esac
 
     # Build the image if it does not exist
     if [[ ! -f "${image_file}" ]]; then
@@ -216,7 +209,6 @@ _run-vm $target_image $tag $type $config:
     # Set up the arguments for running the VM
     run_args=()
     run_args+=(--rm --privileged)
-    run_args+=(--pull=newer)
     run_args+=(--publish "127.0.0.1:${port}:8006")
     run_args+=(--env "CPU_CORES=4")
     run_args+=(--env "RAM_SIZE=8G")
@@ -224,8 +216,8 @@ _run-vm $target_image $tag $type $config:
     run_args+=(--env "TPM=Y")
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
-    run_args+=(--volume "${PWD}/${image_file}":"/boot.${type}")
-    run_args+=(docker.io/qemux/qemu)
+    run_args+=(--volume "${PWD}/${image_file}:${boot_mount}")
+    run_args+=("${qemu_image}")
 
     # Run the VM and open the browser to connect
     (sleep 30 && xdg-open http://localhost:"$port") &
