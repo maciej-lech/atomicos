@@ -33,6 +33,7 @@ dnf5 install -y \
 	xdg-desktop-portal-gnome \
 	xdg-desktop-portal-gtk \
 	xdg-desktop-portal-wlr \
+	xdg-native-messaging-proxy \
 	xdg-terminal-exec \
 	xdg-user-dirs
 
