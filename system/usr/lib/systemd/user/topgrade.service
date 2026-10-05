@@ -1,9 +1,14 @@
 [Unit]
 Description=Topgrade User Update Oneshot Service
-After=network-online.target
-Wants=network-online.target
+# User manager can't see system network-online.target; retry on failure instead
+StartLimitIntervalSec=1h
+StartLimitBurst=3
 
 [Service]
 Type=oneshot
+Slice=background.slice
+IOWeight=10
 Environment="PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:%h/.local/bin:/usr/local/bin:/usr/bin"
 ExecStart=/usr/bin/topgrade --yes --no-ask-retry
+Restart=on-failure
+RestartSec=5min
