@@ -56,6 +56,7 @@ dnf5 install -y \
 	setroubleshoot-plugins \
 	setroubleshoot-server \
 	smartmontools \
+	solaar-udev \
 	switcheroo-control \
 	sysprof \
 	sysstat \
