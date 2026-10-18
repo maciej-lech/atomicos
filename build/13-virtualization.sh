@@ -6,6 +6,7 @@ set -eoux pipefail
 source /ctx/build/repo-helpers.sh
 
 dnf5 install -y \
+	crun-krun \
 	distrobox \
 	edk2-ovmf \
 	incus \
