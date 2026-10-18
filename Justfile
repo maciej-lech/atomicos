@@ -295,11 +295,20 @@ apps-diff:
     #!/usr/bin/env bash
     set -euo pipefail
     export LC_ALL=C
-    echo "## missing"
-    brew bundle check --verbose --no-upgrade --file={{ brewfile }} || true
-    installed=$(brew bundle dump {{ brew_dump_flags }} --file=-)
-    echo "## extra"
-    comm -13 <(sort {{ brewfile }}) <(sort <<<"$installed")
+    section() {
+        echo "# $1"
+        echo "${2:-# none}"
+    }
+    err=$(mktemp)
+    trap 'rm -f "$err"' EXIT
+    if ! installed=$(brew bundle dump {{ brew_dump_flags }} --file=- 2>"$err" | sort); then
+        cat "$err" >&2
+        exit 1
+    fi
+    listed=$(sort {{ brewfile }})
+    section "Missing (listed, not installed)" "$(comm -23 <(echo "$listed") <(echo "$installed"))"
+    echo
+    section "Extra (installed, not listed)" "$(comm -13 <(echo "$listed") <(echo "$installed"))"
 
 # Print installed packages in Brewfile format
 [group('Apps')]
