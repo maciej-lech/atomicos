@@ -5,6 +5,7 @@ if status --is-interactive
         /home/linuxbrew/.linuxbrew/bin/brew shellenv fish | source
         # Append brew after system binaries so its dependencies (dbus, curl, mount...) don't shadow them
         fish_add_path --global --move --append --path $HOMEBREW_PREFIX/bin $HOMEBREW_PREFIX/sbin
+        set -gx HOMEBREW_BUNDLE_FILE_GLOBAL /usr/share/atomicos/Brewfile
         if test -d $HOMEBREW_PREFIX/share/fish/completions
             set -ga fish_complete_path $HOMEBREW_PREFIX/share/fish/completions
         end

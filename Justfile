@@ -3,6 +3,8 @@ export default_tag := env("DEFAULT_TAG", "stable")
 export image_registry := env("IMAGE_REGISTRY", "ghcr.io/maciej-lech")
 export bib_image := env("BIB_IMAGE", "ghcr.io/osbuild/bootc-image-builder:latest@sha256:ae458773815bb097f39572369ce589089b04df41625dd2d01f27d3dc120a4c1d")
 export qemu_image := env("QEMU_IMAGE", "ghcr.io/qemus/qemu:7.50@sha256:e7f6fda52503a546fd649670ba46e4bc23dc6dcef275bc3fac48877fbbc430df")
+brewfile := "system/usr/share/atomicos/Brewfile"
+brew_dump_flags := "--no-describe --no-vscode --no-go --no-cargo --no-uv --no-npm --no-krew"
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
@@ -286,6 +288,23 @@ spawn-vm rebuild="0" type="qcow2" ram="6G":
       --network-user-mode \
       --vsock=false --pass-ssh-key=false \
       -i ./output/**/*.{{ type }}
+
+# Compare Brewfile with installed packages: missing (listed, not installed) and extra (installed, not listed)
+[group('Apps')]
+apps-diff:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export LC_ALL=C
+    echo "## missing"
+    brew bundle check --verbose --no-upgrade --file={{ brewfile }} || true
+    installed=$(brew bundle dump {{ brew_dump_flags }} --file=-)
+    echo "## extra"
+    comm -13 <(sort {{ brewfile }}) <(sort <<<"$installed")
+
+# Print installed packages in Brewfile format
+[group('Apps')]
+apps-dump:
+    @brew bundle dump {{ brew_dump_flags }} --file=-
 
 # Lint all Bash scripts and Justfiles
 lint:

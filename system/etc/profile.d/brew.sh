@@ -4,4 +4,5 @@
 if [[ $- == *i* && -z "${HOMEBREW_PREFIX:-}" && -d /home/linuxbrew/.linuxbrew ]]; then
 	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash | grep -Ev '\bPATH=')"
 	export PATH="${PATH}:${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin"
+	export HOMEBREW_BUNDLE_FILE_GLOBAL=/usr/share/atomicos/Brewfile
 fi
