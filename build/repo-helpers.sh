@@ -76,8 +76,13 @@ rpmfusion_install_isolated() {
 
 	if [[ ! -f /etc/yum.repos.d/rpmfusion-free.repo ]]; then
 		echo "Installing RPM Fusion free release (disabled by default)"
-		dnf5 -y install \
-			"https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E '%{fedora}').noarch.rpm"
+		local release_path
+		release_path="free/fedora/rpmfusion-free-release-$(rpm -E '%{fedora}').noarch.rpm"
+		# mirrors.rpmfusion.org redirects by client location and can land on a dead mirror
+		dnf5 -y install "https://mirrors.rpmfusion.org/$release_path" || {
+			echo "Mirror redirect failed, falling back to download1.rpmfusion.org"
+			dnf5 -y install "https://download1.rpmfusion.org/$release_path"
+		}
 		sed -i 's/^enabled=1$/enabled=0/' /etc/yum.repos.d/rpmfusion-free*.repo
 	fi
 
