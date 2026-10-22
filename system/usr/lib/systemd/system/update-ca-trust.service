@@ -1,0 +1,21 @@
+[Unit]
+Description=Rebuild CA trust bundles from local anchors
+Documentation=man:update-ca-trust(8)
+# ostree keeps locally modified /etc/pki/ca-trust/extracted across upgrades, so
+# bundles go stale vs the image's trust source; regenerate when local trust exists
+ConditionDirectoryNotEmpty=|/etc/pki/ca-trust/source/anchors
+ConditionDirectoryNotEmpty=|/etc/pki/ca-trust/source/blocklist
+ConditionDirectoryNotEmpty=|/etc/pki/ca-trust/source/blacklist
+DefaultDependencies=no
+RequiresMountsFor=/etc /var
+After=local-fs.target
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/update-ca-trust extract
+
+[Install]
+WantedBy=sysinit.target
