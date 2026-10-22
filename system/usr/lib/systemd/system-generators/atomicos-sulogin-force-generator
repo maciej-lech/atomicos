@@ -1,0 +1,56 @@
+#!/usr/bin/bash
+# Based on coreos-sulogin-force-generator from
+# https://github.com/coreos/fedora-coreos-config
+# Copyright 2018 Fedora CoreOS Authors, MIT License
+#
+# If rescue or emergency target is requested on the kernel cmdline, force
+# sulogin so the shell works with a locked root password (Fedora default).
+# Does NOT bypass a locked root on fsck failure, and never bypasses a set
+# password. Requires console/GRUB access, same as init=/bin/bash.
+
+export PATH="/usr/bin:/usr/sbin:${PATH}"
+
+if [ -n "$1" ]; then
+    # https://github.com/systemd/systemd/issues/15638
+    exec 1>/dev/kmsg; exec 2>&1
+fi
+
+UNIT_DIR="${1:-/tmp}"
+
+set -euo pipefail
+
+have_some_karg() {
+    local args=("$@")
+    IFS=" " read -r -a cmdline <<< "$(</proc/cmdline)"
+    local i
+    for i in "${cmdline[@]}"; do
+        for a in "${args[@]}"; do
+            if [[ "$i" == "$a" ]]; then
+                return 0
+            fi
+        done
+    done
+    return 1
+}
+
+write_dropin() {
+    local service="$1"
+    local out_dir="${UNIT_DIR}/${service}.service.d"
+    mkdir -p "${out_dir}"
+
+    # /tmp isn't r/w yet, and the shell needs to cache the here-document
+    TMPDIR=/run
+    cat > "${out_dir}/sulogin-force.conf" <<EOF
+# Automatically created by atomicos-sulogin-force-generator
+[Service]
+Environment=SYSTEMD_SULOGIN_FORCE=1
+EOF
+    echo "$(basename "${0}"): set SYSTEMD_SULOGIN_FORCE=1 for ${service}.service"
+}
+
+# rd.-prefixed targets enter the initramfs, which doesn't use the real root user
+if have_some_karg 'systemd.unit=rescue.target' rescue single s S 1; then
+    write_dropin rescue
+elif have_some_karg 'systemd.unit=emergency.target' emergency '-b'; then
+    write_dropin emergency
+fi
