@@ -12,6 +12,7 @@ curl --retry 3 -fsSLo /etc/flatpak/remotes.d/flathub.flatpakrepo https://dl.flat
 systemctl enable brew-setup.service
 systemctl enable flatpak-add-flathub-repos.service
 systemctl enable flatpak-nuke-fedora.service
+systemctl enable fwupd-refresh.timer
 systemctl enable incus-workaround.service
 systemctl enable libvirt-workaround.service
 systemctl enable update-ca-trust.service
