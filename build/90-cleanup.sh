@@ -6,6 +6,7 @@ systemctl disable rpm-ostreed-automatic.timer
 systemctl mask flatpak-add-fedora-repos.service
 systemctl disable rpm-ostree-countme.timer
 systemctl mask rpm-ostree-countme.timer rpm-ostree-countme.service
+systemctl disable sshd.service sshd.socket
 
 # Disable repos inherited from base image
 for repo in /etc/yum.repos.d/_copr*.repo; do

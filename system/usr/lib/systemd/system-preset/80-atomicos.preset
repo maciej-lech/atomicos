@@ -1,0 +1,2 @@
+disable sshd.service
+disable sshd.socket
