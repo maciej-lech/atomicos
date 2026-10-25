@@ -8,7 +8,6 @@ dnf5 install -y \
 	clevis-luks \
 	clevis-pin-tpm2 \
 	cryfs \
-	device-mapper-multipath \
 	fsverity-utils \
 	fuse-encfs \
 	gvfs \

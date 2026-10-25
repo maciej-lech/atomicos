@@ -1,2 +1,10 @@
 disable sshd.service
 disable sshd.socket
+disable systemd-homed.service
+disable systemd-homed-activate.service
+disable sssd.service
+disable iscsid.socket
+disable iscsiuio.socket
+disable iscsi-starter.service
+disable iscsi-onboot.service
+disable nfs-client.target

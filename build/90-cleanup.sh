@@ -7,6 +7,10 @@ systemctl mask flatpak-add-fedora-repos.service
 systemctl disable rpm-ostree-countme.timer
 systemctl mask rpm-ostree-countme.timer rpm-ostree-countme.service
 systemctl disable sshd.service sshd.socket
+systemctl disable systemd-homed.service systemd-homed-activate.service
+systemctl disable iscsid.socket iscsiuio.socket iscsi-starter.service iscsi-onboot.service
+systemctl disable sssd.service
+systemctl disable nfs-client.target
 
 # Disable repos inherited from base image
 for repo in /etc/yum.repos.d/_copr*.repo; do
