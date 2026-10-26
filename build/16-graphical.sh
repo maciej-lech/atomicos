@@ -47,5 +47,9 @@ dnf5 install -y \
 
 copr_install_isolated "avengemedia/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
-	cliphist dms dms-greeter niri waypipe
+	cliphist dms dms-greeter dux-files niri waypipe
 systemctl enable greetd.service
+
+# Both nautilus and dux-files ship a D-Bus activation file for
+# org.freedesktop.FileManager1; keep only the dux-files one.
+rm /usr/share/dbus-1/services/org.freedesktop.FileManager1.service

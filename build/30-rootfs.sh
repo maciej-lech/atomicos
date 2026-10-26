@@ -16,6 +16,7 @@ systemctl enable fwupd-refresh.timer
 systemctl enable incus-workaround.service
 systemctl enable libvirt-workaround.service
 systemctl enable update-ca-trust.service
+systemctl --global enable dfiles.service
 # topgrade: single user-side run; bootc upgrade allowed passwordless via sudoers
 systemctl --global enable topgrade.timer
 systemctl --global enable udiskie.service
