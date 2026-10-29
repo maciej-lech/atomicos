@@ -72,6 +72,5 @@ dnf5 install -y \
 	zenity \
 	zoxide
 
-# TODO: remove --chroot once che/nerd-fonts publishes F45 packages
-copr_install_isolated "che/nerd-fonts" --chroot=fedora-44-x86_64 nerd-fonts
+copr_install_isolated "che/nerd-fonts" nerd-fonts
 copr_install_isolated "lilay/topgrade" topgrade
