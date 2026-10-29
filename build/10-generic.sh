@@ -72,5 +72,9 @@ dnf5 install -y \
 	zenity \
 	zoxide
 
-copr_install_isolated "che/nerd-fonts" nerd-fonts
-terra_install_isolated topgrade
+terra_install_isolated nerdfontssymbolsonly-nerd-fonts topgrade
+
+# Terra ships the Nerd Font symbols fontconfig rule but does not enable it.
+NERD_SYMBOLS_CONF=/usr/share/fonts/nerd-fonts/NerdFontsSymbolsOnly/10-nerd-font-symbols.conf
+test -f "$NERD_SYMBOLS_CONF"
+ln -s "$NERD_SYMBOLS_CONF" /etc/fonts/conf.d/10-nerd-font-symbols.conf
