@@ -24,7 +24,6 @@ dnf5 install -y \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
-	niri \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6ct \
@@ -39,6 +38,9 @@ dnf5 install -y \
 	xdg-native-messaging-proxy \
 	xdg-terminal-exec \
 	xdg-user-dirs
+
+# Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides
+dnf5 install -y --setopt=install_weak_deps=False niri
 
 copr_install_isolated "scottames/ghostty" ghostty
 terra_install_isolated satty
