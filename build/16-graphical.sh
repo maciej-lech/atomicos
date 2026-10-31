@@ -11,6 +11,7 @@ dnf5 install -y \
 	adwaita-cursor-theme \
 	adwaita-icon-theme \
 	adwaita-icon-theme-legacy \
+	cliphist \
 	foot \
 	gcr \
 	gnome-keyring \
@@ -23,11 +24,13 @@ dnf5 install -y \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
+	niri \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6ct \
 	sound-theme-freedesktop \
 	udiskie \
+	waypipe \
 	wl-mirror \
 	wtype \
 	xdg-desktop-portal-gnome \
@@ -45,9 +48,9 @@ HANDY_VERSION="0.9.8"
 dnf5 install -y \
 	"https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/Handy-${HANDY_VERSION}-1.x86_64.rpm"
 
-copr_install_isolated "avengemedia/dms-git" \
-	--enablerepo="coprdep:copr.fedorainfracloud.org:avengemedia:danklinux" \
-	cliphist dms dms-greeter dux-files niri waypipe
+copr_install_isolated "duxlabs/dms-git" \
+	--enablerepo="coprdep:copr.fedorainfracloud.org:duxlabs:dux-repo" \
+	dms dux-files dux-gop dux-greeter
 systemctl enable greetd.service
 
 # Both nautilus and dux-files ship a D-Bus activation file for
