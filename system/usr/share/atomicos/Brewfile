@@ -1,3 +1,4 @@
+tap "gaurav-gosain/tap"
 tap "hashicorp/tap", trusted: true
 brew "agg"
 brew "ansible"
@@ -81,6 +82,7 @@ brew "yaml-language-server"
 brew "yt-dlp"
 brew "zig"
 brew "zls"
+cask "gaurav-gosain/tap/tuios-ghostty", trusted: true
 flatpak "ai.lmstudio.lm-studio"
 flatpak "com.brave.Browser"
 flatpak "com.github.PintaProject.Pinta"
