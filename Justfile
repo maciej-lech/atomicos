@@ -360,6 +360,47 @@ apps-diff:
 apps-dump:
     @brew bundle dump {{ brew_dump_flags }} --file=-
 
+# Refresh vendored Flathub descriptor, Terra repo and Terra keys from upstream; review the git diff, these are trust roots
+update-vendored:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    keydir=system/etc/pki/rpm-gpg
+
+    curl -fsSL -o "$tmp/flathub.flatpakrepo" https://dl.flathub.org/repo/flathub.flatpakrepo
+
+    # Ship disabled and point gpgkey at the vendored key instead of fetching it at install time
+    curl -fsSL https://raw.githubusercontent.com/terrapkg/subatomic-repos/main/terra.repo \
+        | sed -E -e 's/^enabled=.*/enabled=0/' \
+            -e 's|^gpgkey=https://repos\.fyralabs\.com/terra\$releasever/key\.asc$|gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-terra$releasever|' \
+        > "$tmp/terra.repo"
+    if grep -qE '^gpgkey=.*https?://' "$tmp/terra.repo"; then
+        echo "terra.repo: upstream gpgkey format changed, remote key left after rewrite" >&2
+        exit 1
+    fi
+
+    # Terra signs each Fedora release with its own key; vendor current and next so a rebase works
+    fedora=$(sed -nE 's/^FROM .*base-atomic:([0-9]+)@.*/\1/p' Containerfile)
+    mkdir "$tmp/keys"
+    for release in "$fedora" "$((fedora + 1))"; do
+        key="RPM-GPG-KEY-terra$release"
+        if curl -fsSL -o "$tmp/keys/$key" "https://repos.fyralabs.com/terra$release/key.asc"; then
+            gpg --show-keys "$tmp/keys/$key" >/dev/null
+        elif [[ "$release" != "$fedora" && -f "$keydir/$key" ]]; then
+            cp "$keydir/$key" "$tmp/keys/"
+        elif [[ "$release" == "$fedora" ]]; then
+            echo "Missing Terra key for Fedora $release" >&2
+            exit 1
+        fi
+    done
+
+    install -m0644 "$tmp/flathub.flatpakrepo" system/etc/flatpak/remotes.d/flathub.flatpakrepo
+    install -m0644 "$tmp/terra.repo" system/etc/yum.repos.d/terra.repo
+    rm -f "$keydir"/RPM-GPG-KEY-terra*
+    install -m0644 -D -t "$keydir" "$tmp/keys"/*
+    git status --short system/etc
+
 # Lint all Bash scripts and Justfiles
 lint:
     #!/usr/bin/env bash

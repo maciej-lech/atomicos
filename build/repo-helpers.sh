@@ -124,9 +124,9 @@ terra_install_isolated() {
 	fi
 
 	if [[ ! -f /etc/yum.repos.d/terra.repo ]]; then
-		echo "Installing Terra repo file (disabled by default)"
-		curl -fsSLo /etc/yum.repos.d/terra.repo \
-			https://raw.githubusercontent.com/terrapkg/subatomic-repos/main/terra.repo
+		echo "Installing vendored Terra repo file and keys (disabled by default)"
+		install -m0644 /ctx/system/etc/yum.repos.d/terra.repo /etc/yum.repos.d/terra.repo
+		install -m0644 -D -t /etc/pki/rpm-gpg /ctx/system/etc/pki/rpm-gpg/RPM-GPG-KEY-terra*
 		repo_disable /etc/yum.repos.d/terra.repo
 	fi
 

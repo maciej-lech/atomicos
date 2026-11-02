@@ -1,0 +1,53 @@
+---
+name: Update vendored files
+
+on:
+  schedule:
+    - cron: "0 4 * * MON"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
+      - name: Refresh vendored files
+        run: just update-vendored
+
+      - name: Write PR body
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo 'Automated refresh from `just update-vendored`.'
+            echo
+            echo 'These files decide which keys Flatpaks and Terra packages are verified against.'
+            echo 'Confirm any key or URL change with the vendor before merging.'
+            echo
+            echo '### Terra keys'
+            echo '```'
+            for key in system/etc/pki/rpm-gpg/RPM-GPG-KEY-terra*; do
+              gpg --show-keys "$key"
+            done
+            echo '```'
+          } > "$RUNNER_TEMP/pr-body.md"
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: update-vendored
+          delete-branch: true
+          commit-message: "chore: refresh vendored Flathub and Terra trust files"
+          title: "chore: refresh vendored Flathub and Terra trust files"
+          body-path: ${{ runner.temp }}/pr-body.md
