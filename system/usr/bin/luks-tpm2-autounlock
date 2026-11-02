@@ -14,7 +14,7 @@ case "${EXIT_CODE}" in
     exit 0
 esac
 
-RD_LUKS_UUID="$(xargs -n1 -a /proc/cmdline | grep -F -e "rd.luks.uuid" | cut -d = -f 2 | sed "s/^luks-//" )"
+RD_LUKS_UUID="$(xargs -n1 -a /proc/cmdline | grep -E -e "^rd\.luks\.(uuid|name)=" | head -n 1 | cut -d = -f 2 | sed "s/^luks-//" )"
 CRYPT_DISK="$(realpath "/dev/disk/by-uuid/${RD_LUKS_UUID}")"
 
 if ! find /dev -iname "${RD_LUKS_UUID:-INVALIDINVALID}" | grep -F -e "${RD_LUKS_UUID}" &>/dev/null; then
@@ -35,11 +35,15 @@ case "${EXIT_CODE}" in
     export SET_PIN_ARG="--tpm2-with-pin=yes"
     ;;
   1)
+    echo "Warning: without a PIN the disk unlocks on any boot that matches this machine's Secure Boot state, including Fedora live media signed with the same keys."
     ;;
   *)
     exit 0
 esac
 
-if sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs='' ${SET_PIN_ARG} "${CRYPT_DISK}" ; then
-  echo "TPM2 LUKS auto-unlock configured for next reboot."
+# PCR 7 (Secure Boot state) survives kernel/ostree updates; toggling Secure Boot,
+# db/dbx or MOK changes, or a shim SBAT bump break it and require re-running this
+if sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=7 ${SET_PIN_ARG} "${CRYPT_DISK}" ; then
+  echo "TPM2 LUKS auto-unlock configured for next reboot (bound to PCR 7)."
+  echo "After Secure Boot, firmware key, MOK or shim changes the passphrase prompt returns; re-run this to re-enroll."
 fi
