@@ -2,6 +2,7 @@
 
 set -eoux pipefail
 
+# shellcheck source=/dev/null
 source /ctx/build/repo-helpers.sh
 
 systemctl disable rpm-ostreed-automatic.timer
