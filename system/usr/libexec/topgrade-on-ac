@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+set -euo pipefail
+
+# Start user topgrade.service for every user whose topgrade.timer is enabled
+loginctl list-users --no-legend | while read -r _ user _; do
+    if systemctl --user -M "$user@" is-enabled --quiet topgrade.timer; then
+        systemctl --user -M "$user@" start --no-block topgrade.service || echo "Failed to start topgrade.service for $user" >&2
+    fi
+done

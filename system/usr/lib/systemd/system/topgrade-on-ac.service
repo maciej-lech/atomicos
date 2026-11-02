@@ -1,0 +1,11 @@
+[Unit]
+Description=Trigger Topgrade on AC power connect
+ConditionACPower=true
+StartLimitIntervalSec=6h
+StartLimitBurst=1
+
+[Service]
+Type=oneshot
+# Let dock network settle before topgrade checks for metered connection
+ExecStartPre=/usr/bin/sleep 60
+ExecStart=/usr/libexec/topgrade-on-ac

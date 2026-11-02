@@ -1,5 +1,6 @@
 [Unit]
 Description=Topgrade User Update Oneshot Service
+ConditionACPower=true
 # User manager can't see system network-online.target; retry on failure instead
 StartLimitIntervalSec=1h
 StartLimitBurst=3
@@ -9,6 +10,8 @@ Type=oneshot
 Slice=background.slice
 IOWeight=10
 Environment="PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:%h/.local/bin:/usr/local/bin:/usr/bin"
+# Skip on metered connections (NetworkManager Metered: 1 = yes, 3 = guess-yes)
+ExecCondition=/usr/bin/sh -c 'v=$$(busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager org.freedesktop.NetworkManager Metered 2>/dev/null | cut -d" " -f2); case "$$v" in 1|3) exit 1;; esac'
 ExecStart=/usr/bin/topgrade --yes --no-ask-retry
 Restart=on-failure
 RestartSec=5min

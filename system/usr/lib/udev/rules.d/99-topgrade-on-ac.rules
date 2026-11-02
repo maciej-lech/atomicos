@@ -1,0 +1,2 @@
+# Trigger topgrade when AC power is connected; ACTION=="change" skips boot enumeration
+ACTION=="change", SUBSYSTEM=="power_supply", ATTR{type}=="Mains", ATTR{online}=="1", RUN+="/usr/bin/systemctl start --no-block topgrade-on-ac.service"
