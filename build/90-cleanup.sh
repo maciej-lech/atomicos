@@ -2,6 +2,8 @@
 
 set -eoux pipefail
 
+source /ctx/build/repo-helpers.sh
+
 systemctl disable rpm-ostreed-automatic.timer
 systemctl mask flatpak-add-fedora-repos.service
 systemctl disable rpm-ostree-countme.timer
@@ -14,7 +16,7 @@ systemctl disable nfs-client.target
 
 # Disable repos inherited from base image
 for repo in /etc/yum.repos.d/_copr*.repo; do
-	[[ -f "$repo" ]] && sed -i 's/enabled=1/enabled=0/g' "$repo"
+	[[ -f "$repo" ]] && repo_disable "$repo"
 done
 
 dnf5 clean all
@@ -35,19 +37,19 @@ rm -rf /run && mkdir -p /run
 # shellcheck disable=SC2115
 rm -rf /var/* && mkdir /var/tmp
 
-# Validate no repos are left enabled
+# Validate no repos are left enabled (Fedora 45 moves Fedora repos to /usr/share/dnf5/repos.d)
 VALIDATION_FAILED=0
 
-for repo in /etc/yum.repos.d/*.repo; do
+for repo in /etc/yum.repos.d/*.repo /usr/share/dnf5/repos.d/*.repo; do
 	[[ -f "$repo" ]] || continue
 	basename_repo=$(basename "$repo")
 	[[ "$basename_repo" == fedora.repo ]] && continue
 	[[ "$basename_repo" == fedora-rawhide.repo ]] && continue
 	[[ "$basename_repo" == fedora-updates*.repo ]] && continue
 	[[ "$basename_repo" == fedora-cisco-openh264.repo ]] && continue
-	if grep -q "^enabled=1" "$repo" 2>/dev/null; then
-		echo "ERROR: Enabled repo found: $(basename "$repo")"
-		grep -B5 "^enabled=1" "$repo"
+	if is_repo_enabled "$repo"; then
+		echo "ERROR: Enabled repo found: $repo"
+		grep -iE -B5 "$REPO_ENABLED_RE" "$repo"
 		VALIDATION_FAILED=1
 	fi
 done

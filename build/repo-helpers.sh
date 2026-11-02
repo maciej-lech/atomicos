@@ -2,6 +2,17 @@
 
 set -euo pipefail
 
+# dnf accepts enabled = 1/true/yes/on in any case, with optional whitespace
+REPO_ENABLED_RE='^[[:space:]]*enabled[[:space:]]*=[[:space:]]*(1|true|yes|on)[[:space:]]*$'
+
+repo_disable() {
+	sed -i -E 's/^[[:space:]]*enabled[[:space:]]*=.*$/enabled=0/I' "$@"
+}
+
+is_repo_enabled() {
+	grep -qiE "$REPO_ENABLED_RE" "$1"
+}
+
 dnf_repo_install_isolated() {
 	local repo_url="$1"
 	shift
@@ -17,7 +28,7 @@ dnf_repo_install_isolated() {
 	if [[ ! -f "/etc/yum.repos.d/$repo_file" ]]; then
 		echo "Adding repo $repo_file (disabled by default)"
 		dnf5 config-manager addrepo --from-repofile="$repo_url"
-		sed -i 's/^enabled=.*$/enabled=0/' "/etc/yum.repos.d/$repo_file"
+		repo_disable "/etc/yum.repos.d/$repo_file"
 	fi
 
 	echo "Installing from $repo_file (isolated): $*"
@@ -83,7 +94,7 @@ rpmfusion_install_isolated() {
 			echo "Mirror redirect failed, falling back to download1.rpmfusion.org"
 			dnf5 -y install "https://download1.rpmfusion.org/$release_path"
 		}
-		sed -i 's/^enabled=1$/enabled=0/' /etc/yum.repos.d/rpmfusion-free*.repo
+		repo_disable /etc/yum.repos.d/rpmfusion-free*.repo
 	fi
 
 	local enable_repos=(--enablerepo=rpmfusion-free --enablerepo=rpmfusion-free-updates)
@@ -116,7 +127,7 @@ terra_install_isolated() {
 		echo "Installing Terra repo file (disabled by default)"
 		curl -fsSLo /etc/yum.repos.d/terra.repo \
 			https://raw.githubusercontent.com/terrapkg/subatomic-repos/main/terra.repo
-		sed -i 's/^enabled=1$/enabled=0/' /etc/yum.repos.d/terra.repo
+		repo_disable /etc/yum.repos.d/terra.repo
 	fi
 
 	echo "Installing ${packages[*]} from Terra (isolated)"
