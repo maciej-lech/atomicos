@@ -1,0 +1,21 @@
+[Unit]
+Description=Regenerate crypto-policies back-ends
+Documentation=man:update-crypto-policies(8) https://gitlab.com/fedora/bootc/base-images/-/merge_requests/663
+# /etc three-way merge keeps stale back-ends across image updates
+ConditionPathIsMountPoint=/sysroot
+ConditionPathExists=/usr/bin/update-crypto-policies
+# fips=1 boots get a bind-mounted FIPS policy that --set would unmount and persist
+ConditionKernelCommandLine=!fips=1
+DefaultDependencies=no
+Requires=local-fs.target
+After=local-fs.target
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bash -c '/usr/bin/update-crypto-policies --check >/dev/null || exec /usr/bin/update-crypto-policies --no-reload --set "$$(/usr/bin/update-crypto-policies --show)"'
+
+[Install]
+WantedBy=sysinit.target

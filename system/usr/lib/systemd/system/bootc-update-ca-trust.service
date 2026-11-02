@@ -1,0 +1,19 @@
+[Unit]
+Description=Regenerate CA trust bundles
+Documentation=man:update-ca-trust(8) https://gitlab.com/fedora/bootc/base-images/-/merge_requests/663
+# /etc three-way merge keeps stale extracted bundles across image updates
+ConditionPathIsMountPoint=/sysroot
+ConditionPathExists=/usr/bin/update-ca-trust
+DefaultDependencies=no
+Requires=local-fs.target
+After=local-fs.target
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/update-ca-trust extract
+
+[Install]
+WantedBy=sysinit.target
