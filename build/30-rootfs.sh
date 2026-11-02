@@ -12,6 +12,30 @@ if [[ -n "$rpmostree_grants" ]]; then
 	exit 1
 fi
 
+# ISO installs enforce /etc/containers/policy.json for updates. A policy that does
+# not parse or names a missing key rejects every pull; a missing image scope falls
+# through to the "" catch-all and verifies nothing.
+policy=/etc/containers/policy.json
+if ! policy_keys=$(jq -r '.. | objects | (.keyPath // empty), (.keyPaths // [])[]' "$policy"); then
+	echo "Invalid container trust policy: $policy" >&2
+	exit 1
+fi
+while read -r key; do
+	[[ -n "$key" ]] || continue
+	if [[ ! -s "$key" ]]; then
+		echo "Container trust policy key missing or empty: $key" >&2
+		exit 1
+	fi
+done <<<"$policy_keys"
+if ! jq -e '.transports.docker["ghcr.io/maciej-lech"] | any(.type == "sigstoreSigned")' "$policy" >/dev/null; then
+	echo "No sigstoreSigned scope for ghcr.io/maciej-lech in $policy" >&2
+	exit 1
+fi
+if ! grep -q 'use-sigstore-attachments: true' /etc/containers/registries.d/maciej-lech.yaml; then
+	echo "Sigstore attachments not enabled for ghcr.io/maciej-lech in registries.d" >&2
+	exit 1
+fi
+
 glib-compile-schemas /usr/share/glib-2.0/schemas
 
 systemctl enable brew-setup.service

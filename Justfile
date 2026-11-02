@@ -156,31 +156,40 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
     args+="--use-librepo=True "
     args+="--rootfs=btrfs"
 
+    BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
+    trap 'sudo rm -rf "${BUILDTMP}"' EXIT
+    mkdir "${BUILDTMP}/output"
+
     # BIB records the bootc origin from the image reference it is given, so an
     # ISO built from the local tag would install a system tracking localhost/.
+    # The ISO kickstart switches that same reference to a signature-enforced one.
     build_image="${target_image}:${tag}"
+    config_file="${PWD}/${config}"
     if [[ "${type}" == "iso" ]]; then
         build_image="${image_registry}/${image_name}:${tag}"
         sudo podman tag "${target_image}:${tag}" "${build_image}"
+        if ! grep -q '@IMAGE_REF@' "${config}"; then
+            echo "ERROR: ${config} lacks the @IMAGE_REF@ sigpolicy switch; installs would skip signature checks" >&2
+            exit 1
+        fi
+        config_file="${BUILDTMP}/config.toml"
+        sed "s|@IMAGE_REF@|${build_image}|g" "${config}" > "${config_file}"
     fi
-
-    BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
-    trap 'sudo rm -rf "${BUILDTMP}"' EXIT
 
     sudo podman run \
       --rm \
       --privileged \
       --net=host \
       --security-opt label=type:unconfined_t \
-      -v "${PWD}/${config}:/config.toml:ro" \
-      -v "${BUILDTMP}:/output" \
+      -v "${config_file}:/config.toml:ro" \
+      -v "${BUILDTMP}/output:/output" \
       -v /var/lib/containers/storage:/var/lib/containers/storage \
       "${bib_image}" \
       ${args} \
       "${build_image}"
 
     mkdir -p output
-    sudo cp -af "${BUILDTMP}"/* output/
+    sudo cp -af "${BUILDTMP}"/output/* output/
     sudo chown -R "$(id -u):$(id -g)" output/
 
 # Podman builds the image from the Containerfile and creates a bootable image

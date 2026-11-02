@@ -1,9 +1,18 @@
 # Keep this kickstart table: without one BIB injects clearpart --all and
-# autopart, wiping the first disk without asking. The bootc origin comes from
-# the image reference the Justfile passes to BIB.
+# autopart, wiping the first disk without asking.
+#
+# BIB's own %post records the origin as ostree-unverified-registry:, so updates
+# would skip /etc/containers/policy.json. This kickstart %includes BIB's first,
+# so the %post below runs later and re-records the same reference as
+# ostree-image-signed:. The Justfile replaces @IMAGE_REF@ with the reference it
+# passes to BIB.
 [customizations.installer.kickstart]
 contents = """
 # Interactive install: everything is chosen in Anaconda's interface.
+
+%post --erroronfail
+bootc switch --mutate-in-place --enforce-container-sigpolicy --transport registry @IMAGE_REF@
+%end
 """
 
 [customizations.installer.modules]
