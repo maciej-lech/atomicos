@@ -222,12 +222,24 @@ _run-vm $target_image $tag $type $config:
     #!/usr/bin/bash
     set -eoux pipefail
 
-    # BIB output directories follow osbuild export names, not the type
+    # BIB output directories follow osbuild export names, not the type.
+    # Disk images boot with -snapshot so the guest never writes to the build
+    # artifact; the ISO installs onto the container's throwaway disk.
     case "${type}" in
-        qcow2) image_file="output/qcow2/disk.qcow2"; boot_mount="/boot.qcow2" ;;
-        raw) image_file="output/image/disk.raw"; boot_mount="/boot.img" ;;
-        iso) image_file="output/bootiso/install.iso"; boot_mount="/boot.iso" ;;
+        qcow2) image_file="output/qcow2/disk.qcow2"; boot_mount="/boot.qcow2"; qemu_args="-snapshot" ;;
+        raw) image_file="output/image/disk.raw"; boot_mount="/boot.img"; qemu_args="-snapshot" ;;
+        iso) image_file="output/bootiso/install.iso"; boot_mount="/boot.iso"; qemu_args="" ;;
+        *) echo "ERROR: unknown image type '${type}' (expected qcow2, raw or iso)" >&2; exit 1 ;;
     esac
+
+    if ! command -v podman >/dev/null; then
+        echo "ERROR: podman not found" >&2
+        exit 1
+    fi
+    if [[ ! -w /dev/kvm ]]; then
+        echo "ERROR: /dev/kvm is missing or not writable (add your user to the kvm group)" >&2
+        exit 1
+    fi
 
     # Build the image if it does not exist
     if [[ ! -f "${image_file}" ]]; then
@@ -249,8 +261,10 @@ _run-vm $target_image $tag $type $config:
     run_args+=(--env "CPU_CORES=4")
     run_args+=(--env "RAM_SIZE=8G")
     run_args+=(--env "DISK_SIZE=64G")
+    run_args+=(--env "BOOT_MODE=uefi")
     run_args+=(--env "TPM=Y")
     run_args+=(--env "GPU=Y")
+    [[ -n "${qemu_args}" ]] && run_args+=(--env "ARGUMENTS=${qemu_args}")
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "${PWD}/${image_file}:${boot_mount}")
     run_args+=("${qemu_image}")
@@ -271,14 +285,45 @@ run-vm-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-
 [group('Run Virtal Machine')]
 run-vm-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "iso" "iso/iso.toml")
 
-# Run a virtual machine using systemd-vmspawn
+# Run a virtual machine from a QCOW2 or RAW image using systemd-vmspawn
 [group('Run Virtal Machine')]
 spawn-vm rebuild="0" type="qcow2" ram="6G":
     #!/usr/bin/env bash
 
     set -euo pipefail
 
-    [ "{{ rebuild }}" -eq 1 ] && echo "Rebuilding the ISO" && just build-vm {{ rebuild }} {{ type }}
+    case "{{ type }}" in
+        qcow2) image_file="output/qcow2/disk.qcow2" ;;
+        raw) image_file="output/image/disk.raw" ;;
+        *) echo "ERROR: spawn-vm boots qcow2 or raw disk images; use 'just run-vm-iso' for an ISO" >&2; exit 1 ;;
+    esac
+
+    for dep in systemd-vmspawn qemu-img; do
+        if ! command -v "${dep}" >/dev/null; then
+            echo "ERROR: ${dep} not found; use 'just run-vm-{{ type }}' instead" >&2
+            exit 1
+        fi
+    done
+    if ! command -v qemu-kvm >/dev/null && ! command -v qemu-system-x86_64 >/dev/null; then
+        echo "ERROR: qemu-kvm or qemu-system-x86_64 not found; use 'just run-vm-{{ type }}' instead" >&2
+        exit 1
+    fi
+    if [[ ! -w /dev/kvm ]]; then
+        echo "ERROR: /dev/kvm is missing or not writable (add your user to the kvm group)" >&2
+        exit 1
+    fi
+
+    if [[ "{{ rebuild }}" == 1 ]]; then
+        echo "Rebuilding the {{ type }} image"
+        just "rebuild-{{ type }}"
+    elif [[ ! -f "${image_file}" ]]; then
+        just "build-{{ type }}"
+    fi
+
+    # vmspawn only accepts raw images and writes to them, so boot a scratch copy
+    SCRATCH="$(mktemp -p "${PWD}" -d -t _build-vmspawn.XXXXXXXXXX)"
+    trap 'rm -rf "${SCRATCH}"' EXIT
+    qemu-img convert -p -f "{{ type }}" -O raw "${image_file}" "${SCRATCH}/disk.raw"
 
     systemd-vmspawn \
       -M "bootc-image" \
@@ -287,7 +332,7 @@ spawn-vm rebuild="0" type="qcow2" ram="6G":
       --ram=$(echo {{ ram }}| /usr/bin/numfmt --from=iec) \
       --network-user-mode \
       --vsock=false --pass-ssh-key=false \
-      -i ./output/**/*.{{ type }}
+      -i "${SCRATCH}/disk.raw"
 
 # Compare Brewfile with installed packages: missing (listed, not installed) and extra (installed, not listed)
 [group('Apps')]
