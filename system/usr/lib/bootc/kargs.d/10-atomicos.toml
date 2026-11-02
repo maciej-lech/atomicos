@@ -1,0 +1,2 @@
+# Skip systemd-ssh-generator's AF_UNIX/vsock sshd sockets; sshd.service stays usable
+kargs = ["systemd.ssh_auto=no"]

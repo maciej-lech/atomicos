@@ -8,3 +8,6 @@ disable iscsiuio.socket
 disable iscsi-starter.service
 disable iscsi-onboot.service
 disable nfs-client.target
+disable sssd-kcm.socket
+disable sssd-kcm.service
+disable uresourced.service
