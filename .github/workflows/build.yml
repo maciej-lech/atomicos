@@ -90,16 +90,31 @@ jobs:
           sep-tags: " "
           sep-annotations: " "
 
+      # Mirrors (RPM Fusion, Terra) flake on GitHub runners: retry the build up
+      # to 3 times, each attempt runs only if the previous one failed
       - name: Build Image
         id: build_image
+        continue-on-error: true
         uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
-        with:
+        with: &build_image_with
           containerfiles: |
             ./Containerfile
           image: ${{ env.IMAGE_NAME }}
           tags: ${{ env.DEFAULT_TAG }}
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
+
+      - name: Build Image (attempt 2)
+        id: build_image_2
+        if: steps.build_image.outcome == 'failure'
+        continue-on-error: true
+        uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
+        with: *build_image_with
+
+      - name: Build Image (attempt 3)
+        if: steps.build_image_2.outcome == 'failure'
+        uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
+        with: *build_image_with
 
       # Split into package-based layers so clients download only what changed
       - name: Rechunk Image

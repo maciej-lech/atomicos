@@ -72,4 +72,4 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 CMD ["/sbin/init"]
 
-RUN bootc container lint
+RUN bootc container lint --fatal-warnings
