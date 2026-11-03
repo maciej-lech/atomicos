@@ -4,7 +4,11 @@ name: Validate Shell Scripts
 on:
   pull_request:
     paths:
-      - "build/**/*.sh"
+      - "**/*.sh"
+      - "build/**"
+      - "system/**"
+      - "Justfile"
+      - ".github/workflows/validate-shellcheck.yml"
 
 permissions:
   contents: read
@@ -16,6 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Install just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
       - name: Install ShellCheck
         shell: bash
         run: |
@@ -25,16 +32,27 @@ jobs:
       - name: Validate Shell Scripts
         shell: bash
         run: |
-          echo "Running shellcheck on build scripts..."
+          set -euo pipefail
 
-          set -xeuo pipefail
+          mapfile -t sources < <(just shell-sources)
+          if [[ ${#sources[@]} -eq 0 ]]; then
+            echo "No shell scripts found" >&2
+            exit 1
+          fi
 
-          find "build" -iname '*.sh' -print0 | \
-            while IFS= read -r -d '' script ; do \
-              echo "::group:: ===$(basename "$script")==="
-              shellcheck -x "$script"
-              echo "✓ $script passed shellcheck"
-              echo "::endgroup::"
-            done
+          failed=0
+          for script in "${sources[@]}"; do
+            echo "::group:: === ${script} ==="
+            if shellcheck -x "$script"; then
+              echo "✓ ${script} passed shellcheck"
+            else
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
 
-          echo "All shell scripts passed validation"
+          if [[ $failed -ne 0 ]]; then
+            echo "::error::shellcheck failed"
+            exit 1
+          fi
+          echo "All ${#sources[@]} shell scripts passed validation"

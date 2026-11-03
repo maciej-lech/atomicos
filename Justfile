@@ -410,6 +410,19 @@ update-vendored:
     install -m0644 -D -t "$keydir" "$tmp/keys"/*
     git status --short system/etc
 
+# List shell scripts git tracks: *.sh plus sh/bash shebang scripts under build/ and system/
+shell-sources:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {
+        git ls-files '*.sh'
+        git ls-files build system | while IFS= read -r f; do
+            if [[ -f "$f" && ! -L "$f" ]] && head -n1 "$f" | grep -Eq '^#!\s*(/usr)?/bin/(env\s+)?(ba)?sh(\s|$)'; then
+                echo "$f"
+            fi
+        done
+    } | sort -u
+
 # Lint all Bash scripts and Justfiles
 lint:
     #!/usr/bin/env bash
@@ -420,7 +433,8 @@ lint:
     fi
     just --unstable --fmt --check -f Justfile
     git ls-files '*.just' | xargs -I{} just --unstable --fmt --check -f {}
-    git ls-files '*.sh' | xargs shellcheck
+    mapfile -t sources < <(just shell-sources)
+    shellcheck -x "${sources[@]}"
 
 # Format all Bash scripts and Justfiles
 format:
