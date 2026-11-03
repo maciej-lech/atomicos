@@ -26,6 +26,7 @@ dnf5 install -y \
 	nautilus \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
+	qt6-qtimageformats \
 	qt6ct \
 	sound-theme-freedesktop \
 	udiskie \
