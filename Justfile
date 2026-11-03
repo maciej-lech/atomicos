@@ -423,7 +423,7 @@ shell-sources:
         done
     } | sort -u
 
-# Lint all Bash scripts and Justfiles
+# Lint all Bash scripts, Justfiles and Containerfile
 lint:
     #!/usr/bin/env bash
     set -eoux pipefail
@@ -435,6 +435,11 @@ lint:
     git ls-files '*.just' | xargs -I{} just --unstable --fmt --check -f {}
     mapfile -t sources < <(just shell-sources)
     shellcheck -x "${sources[@]}"
+    if command -v hadolint &> /dev/null; then
+        hadolint --config .github/hadolint.yaml Containerfile
+    else
+        echo "hadolint not found, skipping Containerfile lint"
+    fi
 
 # Format all Bash scripts and Justfiles
 format:
