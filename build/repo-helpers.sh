@@ -85,7 +85,7 @@ rpmfusion_install_isolated() {
 		return 1
 	fi
 
-	if [[ ! -f /etc/yum.repos.d/rpmfusion-free.repo ]]; then
+	if ! rpm -q --quiet rpmfusion-free-release; then
 		echo "Installing RPM Fusion free release (disabled by default)"
 		local release_path
 		release_path="free/fedora/rpmfusion-free-release-$(rpm -E '%{fedora}').noarch.rpm"
@@ -94,11 +94,18 @@ rpmfusion_install_isolated() {
 			echo "Mirror redirect failed, falling back to download1.rpmfusion.org"
 			dnf5 -y install "https://download1.rpmfusion.org/$release_path"
 		}
-		repo_disable /etc/yum.repos.d/rpmfusion-free*.repo
+		# rpmfusion-free-release 45-2 moved its repo files to /usr/share/dnf5/repos.d,
+		# stale mirrors still serve builds that use /etc/yum.repos.d
+		local repo
+		for repo in /etc/yum.repos.d/rpmfusion-free*.repo /usr/share/dnf5/repos.d/rpmfusion-free*.repo; do
+			if [[ -f "$repo" ]]; then
+				repo_disable "$repo"
+			fi
+		done
 	fi
 
 	local enable_repos=(--enablerepo=rpmfusion-free --enablerepo=rpmfusion-free-updates)
-	if [[ -f /etc/yum.repos.d/rpmfusion-free-rawhide.repo ]]; then
+	if [[ -f /etc/yum.repos.d/rpmfusion-free-rawhide.repo || -f /usr/share/dnf5/repos.d/rpmfusion-free-rawhide.repo ]]; then
 		enable_repos=(--enablerepo=rpmfusion-free-rawhide)
 	fi
 

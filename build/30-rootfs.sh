@@ -16,7 +16,7 @@ fi
 # not parse or names a missing key rejects every pull; a missing image scope falls
 # through to the "" catch-all and verifies nothing.
 policy=/etc/containers/policy.json
-if ! policy_keys=$(jq -r '.. | objects | (.keyPath // empty), (.keyPaths // [])[]' "$policy"); then
+if ! policy_keys=$(jq -r '.. | objects | (.keyPath // empty), (.keyPaths // [])[], (.rekorPublicKeyPath // empty)' "$policy"); then
 	echo "Invalid container trust policy: $policy" >&2
 	exit 1
 fi

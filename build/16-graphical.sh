@@ -14,8 +14,6 @@ dnf5 install -y \
 	cliphist \
 	foot \
 	gcr \
-	gnome-keyring \
-	gnome-keyring-pam \
 	hicolor-icon-theme \
 	kf6-kimageformats \
 	libadwaita \
@@ -24,6 +22,9 @@ dnf5 install -y \
 	libportal \
 	libportal-gtk4 \
 	nautilus \
+	oo7-daemon \
+	oo7-portal \
+	pam_oo7 \
 	pinentry-gnome3 \
 	qadwaitadecorations-qt5 \
 	qt6-qtimageformats \
@@ -40,7 +41,8 @@ dnf5 install -y \
 	xdg-terminal-exec \
 	xdg-user-dirs
 
-# Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides
+# Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides;
+# gnome-keyring would compete with oo7-daemon for org.freedesktop.secrets
 dnf5 install -y --setopt=install_weak_deps=False niri
 
 copr_install_isolated "scottames/ghostty" ghostty
@@ -70,8 +72,19 @@ rm -rf "$handy_dir"
 copr_install_isolated "duxlabs/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:duxlabs:dux-repo" \
 	dms dux-files dux-gop dux-greeter
+# greetd ships its PAM stack in /usr/lib/pam.d, so dux-greeter's %post finds no
+# /etc/pam.d/greetd and writes a stripped-down one that shadows it, losing the
+# keyring unlock at login. Put greetd's own stack there instead, because the
+# greeter UI and `dms greeter sync` only read /etc/pam.d/greetd.
+# TODO: drop once duxlabs-dev/dux-repo#15 and duxlabs-dev/dux-greeter#49 are fixed (#366)
+cp /usr/lib/pam.d/greetd /etc/pam.d/greetd
 systemctl enable greetd.service
 
 # Both nautilus and dux-files ship a D-Bus activation file for
 # org.freedesktop.FileManager1; keep only the dux-files one.
 rm /usr/share/dbus-1/services/org.freedesktop.FileManager1.service
+
+if rpm -q gnome-keyring; then
+	echo "gnome-keyring is installed and would compete with oo7-daemon" >&2
+	exit 1
+fi
