@@ -55,6 +55,48 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          # be careful when upgrading major versions
+          cosign-release: 'v3.1.4'
+
+      # Fail closed: every external image the Containerfile pulls must be pinned
+      # by digest and signed with a vendored key (refreshed by update-vendored)
+      - name: Verify source image signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t stages < <(sed -nE 's/^FROM .* [Aa][Ss] ([^ ]+)$/\1/p' Containerfile)
+          mapfile -t refs < <(grep -oE '(^FROM |--from=|,from=)[^ ,]+' Containerfile | sed -E 's/^(FROM |--from=|,from=)//' | sort -u)
+
+          verified=0
+          for ref in "${refs[@]}"; do
+            if [[ "$ref" == scratch ]] || printf '%s\n' "${stages[@]}" | grep -qxF "$ref"; then
+              continue
+            fi
+            if [[ ! "$ref" =~ @sha256:[0-9a-f]{64}$ ]]; then
+              echo "::error::${ref} is not pinned by digest"
+              exit 1
+            fi
+            case "$ref" in
+              quay.io/fedora-ostree-desktops/*) key=.github/cosign/quay.io-fedora-ostree-desktops.pub ;;
+              ghcr.io/ublue-os/*) key=.github/cosign/ghcr.io-ublue-os.pub ;;
+              *)
+                echo "::error::No cosign key configured for ${ref}"
+                exit 1
+                ;;
+            esac
+            echo "Verifying ${ref} with ${key}"
+            cosign verify --key "$key" "$ref" > /dev/null
+            verified=$((verified + 1))
+          done
+
+          if [[ $verified -eq 0 ]]; then
+            echo "::error::No source images found in Containerfile"
+            exit 1
+          fi
+
       - name: Get current date
         id: date
         run: |
@@ -153,13 +195,6 @@ jobs:
           done
           echo "digest=$(cat "${digest_file}")" >> "${GITHUB_OUTPUT}"
 
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
-        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        with:
-          # be careful when upgrading major versions
-          cosign-release: 'v3.1.4'
-
       - name: Sign container image
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         # bootc/skopeo only read the legacy `sha256-<digest>.sig` tag; cosign v3
@@ -170,3 +205,16 @@ jobs:
         run: cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+
+      # cosign verify accepts either signature format, but bootc/skopeo only read
+      # the legacy simple-signing `sha256-<digest>.sig` tag, so check it directly
+      - name: Verify published image signature
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          image="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+          cosign verify --key cosign.pub "${image}@${DIGEST}" > /dev/null
+          skopeo inspect --raw "docker://${image}:${DIGEST/:/-}.sig" \
+            | jq -e '.layers[] | select(.mediaType == "application/vnd.dev.cosign.simplesigning.v1+json")' > /dev/null

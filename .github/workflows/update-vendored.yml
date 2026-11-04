@@ -32,13 +32,21 @@ jobs:
           {
             echo 'Automated refresh from `just update-vendored`.'
             echo
-            echo 'These files decide which keys Flatpaks and Terra packages are verified against.'
+            echo 'These files decide which keys Flatpaks, Terra packages and source container images are verified against.'
             echo 'Confirm any key or URL change with the vendor before merging.'
             echo
             echo '### Terra keys'
             echo '```'
             for key in system/etc/pki/rpm-gpg/RPM-GPG-KEY-terra*; do
               gpg --show-keys "$key"
+            done
+            echo '```'
+            echo
+            echo '### Source image cosign keys'
+            echo '```'
+            for key in .github/cosign/*.pub; do
+              echo "$key"
+              cat "$key"
             done
             echo '```'
           } > "$RUNNER_TEMP/pr-body.md"
@@ -48,6 +56,6 @@ jobs:
         with:
           branch: update-vendored
           delete-branch: true
-          commit-message: "chore: refresh vendored Flathub and Terra trust files"
-          title: "chore: refresh vendored Flathub and Terra trust files"
+          commit-message: "chore: refresh vendored Flathub, Terra and cosign trust files"
+          title: "chore: refresh vendored Flathub, Terra and cosign trust files"
           body-path: ${{ runner.temp }}/pr-body.md

@@ -369,7 +369,7 @@ apps-diff:
 apps-dump:
     @brew bundle dump {{ brew_dump_flags }} --file=-
 
-# Refresh vendored Flathub descriptor, Terra repo and Terra keys from upstream; review the git diff, these are trust roots
+# Refresh vendored Flathub descriptor, Terra repo, Terra keys and source image cosign keys from upstream; review the git diff, these are trust roots
 update-vendored:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -404,11 +404,20 @@ update-vendored:
         fi
     done
 
+    # Keys CI verifies Containerfile source images against
+    mkdir "$tmp/cosign"
+    curl -fsSL -o "$tmp/cosign/quay.io-fedora-ostree-desktops.pub" https://gitlab.com/fedora/ostree/ci-test/-/raw/main/quay.io-fedora-ostree-desktops.pub
+    curl -fsSL -o "$tmp/cosign/ghcr.io-ublue-os.pub" https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub
+    for key in "$tmp/cosign"/*.pub; do
+        openssl pkey -pubin -in "$key" -noout
+    done
+
     install -m0644 "$tmp/flathub.flatpakrepo" system/etc/flatpak/remotes.d/flathub.flatpakrepo
     install -m0644 "$tmp/terra.repo" system/etc/yum.repos.d/terra.repo
     rm -f "$keydir"/RPM-GPG-KEY-terra*
     install -m0644 -D -t "$keydir" "$tmp/keys"/*
-    git status --short system/etc
+    install -m0644 -D -t .github/cosign "$tmp/cosign"/*.pub
+    git status --short system/etc .github/cosign
 
 # List shell scripts git tracks: *.sh plus sh/bash shebang scripts under build/ and system/
 shell-sources:
