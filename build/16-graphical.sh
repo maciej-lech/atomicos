@@ -48,8 +48,24 @@ terra_install_isolated satty
 
 # renovate: datasource=github-releases depName=cjpais/handy extractVersion=^v(?<version>.+)$
 HANDY_VERSION="0.10.0"
-dnf5 install -y \
-	"https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/Handy-${HANDY_VERSION}-1.x86_64.rpm"
+handy_rpm="Handy-${HANDY_VERSION}-1.x86_64.rpm"
+handy_dir=$(mktemp -d)
+curl -fsSL --retry 3 -o "$handy_dir/$handy_rpm" \
+	"https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/${handy_rpm}"
+# Tauri updater signatures are base64-wrapped minisign signatures
+curl -fsSL --retry 3 "https://github.com/cjpais/handy/releases/download/v${HANDY_VERSION}/${handy_rpm}.sig" |
+	base64 -d >"$handy_dir/$handy_rpm.minisig"
+dnf5 install -y minisign
+# The signed trusted comment names the file, so an older signed release can't stand in
+handy_signed=$(minisign -V -Q -p /ctx/build/keys/handy-minisign.pub \
+	-m "$handy_dir/$handy_rpm" -x "$handy_dir/$handy_rpm.minisig")
+if [[ "$handy_signed" != *$'\t'"file:${handy_rpm}" ]]; then
+	echo "Handy signature is for '${handy_signed}', expected ${handy_rpm}" >&2
+	exit 1
+fi
+dnf5 remove -y minisign
+dnf5 install -y "$handy_dir/$handy_rpm"
+rm -rf "$handy_dir"
 
 copr_install_isolated "duxlabs/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:duxlabs:dux-repo" \

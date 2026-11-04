@@ -412,12 +412,23 @@ update-vendored:
         openssl pkey -pubin -in "$key" -noout
     done
 
+    # Handy signs its release assets with the Tauri updater key; take it from the pinned tag
+    handy_version=$(sed -nE 's/^HANDY_VERSION="([^"]+)"$/\1/p' build/16-graphical.sh)
+    curl -fsSL "https://raw.githubusercontent.com/cjpais/Handy/v$handy_version/src-tauri/tauri.conf.json" \
+        | jq -er .plugins.updater.pubkey | base64 -d > "$tmp/handy-minisign.pub"
+    if ! head -n1 "$tmp/handy-minisign.pub" | grep -q '^untrusted comment: minisign public key' \
+        || [[ "$(sed -n 2p "$tmp/handy-minisign.pub" | base64 -d | head -c2)" != Ed ]]; then
+        echo "Handy updater pubkey is not a minisign Ed25519 public key" >&2
+        exit 1
+    fi
+
     install -m0644 "$tmp/flathub.flatpakrepo" system/etc/flatpak/remotes.d/flathub.flatpakrepo
     install -m0644 "$tmp/terra.repo" system/etc/yum.repos.d/terra.repo
     rm -f "$keydir"/RPM-GPG-KEY-terra*
     install -m0644 -D -t "$keydir" "$tmp/keys"/*
     install -m0644 -D -t .github/cosign "$tmp/cosign"/*.pub
-    git status --short system/etc .github/cosign
+    install -m0644 -D -t build/keys "$tmp/handy-minisign.pub"
+    git status --short system/etc .github/cosign build/keys
 
 # List shell scripts git tracks: *.sh plus sh/bash shebang scripts under build/ and system/
 shell-sources:
