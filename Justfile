@@ -1,7 +1,7 @@
 export image_name := env("IMAGE_NAME", "atomicos")
 export default_tag := env("DEFAULT_TAG", "stable")
 export image_registry := env("IMAGE_REGISTRY", "ghcr.io/maciej-lech")
-export bib_image := env("BIB_IMAGE", "ghcr.io/osbuild/bootc-image-builder:latest@sha256:79390442acfa0700ef72b457c133c6320c5536966ca1a5de628bbde357d11a59")
+export bib_image := env("BIB_IMAGE", "ghcr.io/osbuild/bootc-image-builder:latest@sha256:43c3bb060f335c3b68ef518e5866e6f91e12b8a916f7ae8604e6530342215946")
 export qemu_image := env("QEMU_IMAGE", "ghcr.io/qemus/qemu:7.50@sha256:e7f6fda52503a546fd649670ba46e4bc23dc6dcef275bc3fac48877fbbc430df")
 brewfile := "system/usr/share/atomicos/Brewfile"
 brew_dump_flags := "--no-describe --no-vscode --no-go --no-cargo --no-uv --no-npm --no-krew"
