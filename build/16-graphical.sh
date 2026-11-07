@@ -72,12 +72,12 @@ rm -rf "$handy_dir"
 copr_install_isolated "duxlabs/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:duxlabs:dux-repo" \
 	dms dux-files dux-gop dux-greeter
-# greetd ships its PAM stack in /usr/lib/pam.d, so dux-greeter's %post finds no
-# /etc/pam.d/greetd and writes a stripped-down one that shadows it, losing the
-# keyring unlock at login. Put greetd's own stack there instead, because the
-# greeter UI and `dms greeter sync` only read /etc/pam.d/greetd.
-# TODO: drop once duxlabs-dev/dux-repo#15 and duxlabs-dev/dux-greeter#49 are fixed (#366)
-cp /usr/lib/pam.d/greetd /etc/pam.d/greetd
+# A stripped-down /etc/pam.d/greetd would shadow greetd's own stack in
+# /usr/lib/pam.d and lose the keyring unlock at login (#366)
+if [[ -e /etc/pam.d/greetd ]]; then
+	echo "/etc/pam.d/greetd shadows greetd's /usr/lib/pam.d/greetd" >&2
+	exit 1
+fi
 systemctl enable greetd.service
 
 # Both nautilus and dux-files ship a D-Bus activation file for
