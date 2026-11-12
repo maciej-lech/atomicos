@@ -3,6 +3,10 @@
   "extends": [
     "config:best-practices",
   ],
+  // Actions are pinned via .github/workflows/actions.lock instead of inline digests
+  "ignorePresets": [
+    "helpers:pinGitHubActionDigests",
+  ],
 
   // Do not rebase when the default branch is updated
   "rebaseWhen": "never",
@@ -19,6 +23,16 @@
         '[^\\s]+\\s*:=\\s*(?:env\\([^,]+,\\s*)?["\'](?<depName>[a-z0-9./_-]+):(?<currentValue>[a-z0-9._-]+)@(?<currentDigest>sha256:[a-f0-9]+)["\']\\)?',
       ],
       datasourceTemplate: 'docker',
+    },
+    {
+      customType: 'regex',
+      description: 'Match gh-actions-lock extension version in workflows',
+      managerFilePatterns: [
+        '/^\\.github/workflows/[^/]+\\.ya?ml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+GH_ACTIONS_LOCK_VERSION:\\s*(?<currentValue>\\S+)',
+      ],
     },
     {
       customType: 'regex',
@@ -47,12 +61,6 @@
       // after 28 days on quay, so a branch left un-rebased here rots into an
       // unbuildable pin instead of merely going stale.
       "rebaseWhen": "auto",
-    },
-    {
-      "description": "Exclude Claude workflow files from updates to avoid review validation failures",
-      "enabled": false,
-      "matchDepTypes": ["action"],
-      "matchFileNames": [".github/workflows/claude*.yml"],
     },
     {
       "description": "Let fresh GitHub releases settle before updating (actions, release artifacts)",
