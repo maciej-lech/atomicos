@@ -44,6 +44,8 @@ jobs:
       # These stage versions are pinned by https://github.com/renovatebot/renovate
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       # Rechunking writes a second full copy of the image. PR builds skip
       # rechunking: they never push, and it doubles the build time.
@@ -54,11 +56,15 @@ jobs:
       - name: Install just
         if: github.event_name != 'pull_request'
         uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+        with:
+          # renovate: datasource=github-releases depName=casey/just
+          just-version: 1.59.0
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
         with:
           # be careful when upgrading major versions
+          # renovate: datasource=github-releases depName=sigstore/cosign
           cosign-release: 'v3.1.4'
 
       # Fail closed: every external image the Containerfile pulls must be pinned
@@ -161,13 +167,15 @@ jobs:
       # Split into package-based layers so clients download only what changed
       - name: Rechunk Image
         if: github.event_name != 'pull_request'
-        run: just rechunk "${{ env.IMAGE_NAME }}" "${{ env.DEFAULT_TAG }}"
+        run: just rechunk "${IMAGE_NAME}" "${DEFAULT_TAG}"
 
       # Tag for registry
       - name: Tag for registry
+        env:
+          TAGS: ${{ steps.metadata.outputs.tags }}
         run: |
-          for tag in ${{ steps.metadata.outputs.tags }}; do
-            podman tag ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} ${{ env.IMAGE_NAME }}:$tag
+          for tag in ${TAGS}; do
+            podman tag "${IMAGE_NAME}:${DEFAULT_TAG}" "${IMAGE_NAME}:${tag}"
           done
 
       # These `if` statements are so that pull requests for your custom images do not make it publish any packages under your name without you knowing
@@ -186,9 +194,11 @@ jobs:
       - name: Push To GHCR
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         id: push
+        env:
+          TAGS: ${{ steps.metadata.outputs.tags }}
         run: |
           digest_file="$(mktemp)"
-          for tag in ${{ steps.metadata.outputs.tags }}; do
+          for tag in ${TAGS}; do
             for _ in 1 2; do
               podman push --digestfile "${digest_file}" "${IMAGE_NAME}:${tag}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${tag}"
             done
@@ -202,9 +212,10 @@ jobs:
         # are required: without them v3 breaks verification on clients.
         # https://github.com/containers/container-libs/issues/388
         # https://github.com/coreos/rpm-ostree/issues/5509
-        run: cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}"
+        run: cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY "${IMAGE_REGISTRY}/${IMAGE_NAME}@${DIGEST}"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          DIGEST: ${{ steps.push.outputs.digest }}
 
       # cosign verify accepts either signature format, but bootc/skopeo only read
       # the legacy simple-signing `sha256-<digest>.sig` tag, so check it directly

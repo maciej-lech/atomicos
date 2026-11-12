@@ -30,6 +30,16 @@
         '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+\\w+_VERSION="(?<currentValue>[^"]+)"',
       ],
     },
+    {
+      customType: 'regex',
+      description: 'Match tool versions passed to actions in workflows',
+      managerFilePatterns: [
+        '/^\\.github/workflows/.*\\.ya?ml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+[\\w-]+:\\s*["\']?(?<currentValue>[^\\s"\']+)["\']?',
+      ],
+    },
   ],
 
   "packageRules": [
@@ -47,12 +57,6 @@
       // after 28 days on quay, so a branch left un-rebased here rots into an
       // unbuildable pin instead of merely going stale.
       "rebaseWhen": "auto",
-    },
-    {
-      "description": "Exclude Claude workflow files from updates to avoid review validation failures",
-      "enabled": false,
-      "matchDepTypes": ["action"],
-      "matchFileNames": [".github/workflows/claude*.yml"],
     },
     {
       "description": "Let fresh GitHub releases settle before updating (actions, release artifacts)",

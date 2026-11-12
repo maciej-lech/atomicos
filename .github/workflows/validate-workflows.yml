@@ -1,0 +1,32 @@
+---
+name: Validate Workflows
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # zizmor version is hash-locked in the action release, bumped with its digest
+      - name: Zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          inputs: .github/workflows
+          advanced-security: false
+          annotations: true
