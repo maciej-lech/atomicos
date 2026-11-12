@@ -54,5 +54,16 @@
       "matchDepTypes": ["action"],
       "matchFileNames": [".github/workflows/claude*.yml"],
     },
+    {
+      "description": "Let fresh GitHub releases settle before updating (actions, release artifacts)",
+      // Not docker: GHCR/Quay expose no release timestamps, so digest updates would be held forever
+      "matchDatasources": ["github-tags", "github-releases"],
+      "minimumReleaseAge": "3 days",
+    },
+    {
+      "description": "Branch ref has no release timestamp; cooldown would hold its digest updates forever",
+      "matchDepNames": ["ublue-os/remove-unwanted-software"],
+      "minimumReleaseAge": null,
+    },
   ]
 }
