@@ -1,0 +1,16 @@
+[Unit]
+Description=Virtual SW_DOCK switch for i-tec Thunderbolt dock
+BindsTo=sys-subsystem-dock-itec.device
+After=sys-subsystem-dock-itec.device
+
+[Service]
+ExecStart=/usr/libexec/dock-switch
+DevicePolicy=closed
+DeviceAllow=/dev/uinput w
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateNetwork=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX

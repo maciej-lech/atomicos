@@ -1,0 +1,4 @@
+# Run dock-switch.service while the i-tec Thunderbolt dock is attached and authorized
+ACTION=="remove", GOTO="dock_switch_end"
+SUBSYSTEM=="thunderbolt", ENV{DEVTYPE}=="thunderbolt_device", ATTR{vendor_name}=="i-tec", ATTR{device_name}=="TB3CDUALDPDOCKPD", ATTR{authorized}=="1", TAG+="systemd", ENV{SYSTEMD_ALIAS}+="/sys/subsystem/dock/itec", ENV{SYSTEMD_WANTS}+="dock-switch.service"
+LABEL="dock_switch_end"

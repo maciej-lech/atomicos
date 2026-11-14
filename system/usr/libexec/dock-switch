@@ -1,0 +1,50 @@
+#!/usr/bin/python3 -I
+
+# Expose a virtual SW_DOCK=1 input switch while the dock is attached, so logind
+# treats the laptop as docked even when no external output is enabled (e.g.
+# during the greeter-to-session compositor handoff with the lid closed).
+
+import fcntl
+import os
+import signal
+import struct
+
+UI_SET_EVBIT = 0x40045564
+UI_SET_SWBIT = 0x4004556D
+UI_DEV_SETUP = 0x405C5503
+UI_DEV_CREATE = 0x5501
+UI_DEV_DESTROY = 0x5502
+
+EV_SYN = 0x00
+EV_SW = 0x05
+SYN_REPORT = 0
+SW_DOCK = 0x05
+BUS_VIRTUAL = 0x06
+
+
+def emit(fd, ev_type, code, value):
+    os.write(fd, struct.pack("llHHi", 0, 0, ev_type, code, value))
+
+
+def main():
+    fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
+    fcntl.ioctl(fd, UI_SET_EVBIT, EV_SW)
+    fcntl.ioctl(fd, UI_SET_SWBIT, SW_DOCK)
+    # struct uinput_setup: input_id (bustype, vendor, product, version), name[80], ff_effects_max
+    setup = struct.pack("HHHH80sI", BUS_VIRTUAL, 0, 0, 1, b"Virtual Dock Switch", 0)
+    fcntl.ioctl(fd, UI_DEV_SETUP, setup)
+    fcntl.ioctl(fd, UI_DEV_CREATE)
+
+    emit(fd, EV_SW, SW_DOCK, 1)
+    emit(fd, EV_SYN, SYN_REPORT, 0)
+
+    signal.signal(signal.SIGTERM, lambda *_: None)
+    signal.signal(signal.SIGINT, lambda *_: None)
+    signal.pause()
+
+    fcntl.ioctl(fd, UI_DEV_DESTROY)
+    os.close(fd)
+
+
+if __name__ == "__main__":
+    main()
