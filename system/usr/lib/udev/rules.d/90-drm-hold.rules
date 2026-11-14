@@ -1,0 +1,4 @@
+# Run drm-hold@<node>.service for every DRM render node
+ACTION=="remove", GOTO="drm_hold_end"
+SUBSYSTEM=="drm", KERNEL=="renderD*", TAG+="systemd", ENV{SYSTEMD_WANTS}+="drm-hold@%k.service"
+LABEL="drm_hold_end"

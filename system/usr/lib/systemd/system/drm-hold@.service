@@ -1,0 +1,19 @@
+# Keep the GPU open so compositor exit at the greeter handoff skips the kernel fbdev restore on last close
+[Unit]
+Description=Hold DRM render node %I open across compositor handoffs
+BindsTo=dev-dri-%i.device
+After=dev-dri-%i.device
+Before=greetd.service
+
+[Service]
+ExecStart=/usr/bin/sleep infinity
+StandardInput=file:/dev/dri/%I
+DynamicUser=yes
+DevicePolicy=closed
+DeviceAllow=/dev/dri/%I r
+ProtectSystem=strict
+ProtectHome=yes
+PrivateNetwork=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+Restart=on-failure
