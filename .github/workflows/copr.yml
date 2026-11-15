@@ -8,7 +8,6 @@ on:
     paths:
       - "packages/**"
       - ".copr/**"
-      - ".github/workflows/copr.yml"
   workflow_dispatch:
     inputs:
       packages:
@@ -55,7 +54,7 @@ jobs:
             selected=${INPUT_PACKAGES:-$all}
           elif [[ -z "$BEFORE" || "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             selected=$all
-          elif git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -qE '^(\.copr/|\.github/workflows/copr\.yml$)'; then
+          elif git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -q '^\.copr/'; then
             selected=$all
           else
             selected=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" -- packages/ | cut -d/ -f2 | sort -u)

@@ -26,10 +26,11 @@ rpmbuild --rebuild /tmp/srpm/<name>-*.src.rpm
 
 ## Builds
 
-`.github/workflows/copr.yml` runs on pushes to `master` that touch `packages/`, `.copr/` or the workflow itself, and
-builds only the changed packages from the pushed commit. Run it by hand (Actions > COPR packages) to rebuild some or
-all packages. It needs the `COPR_CONFIG` secret: the content of `~/.config/copr` from
-<https://copr.fedorainfracloud.org/api/>. The token expires after about 180 days; an auth error means it needs renewing.
+`.github/workflows/copr.yml` runs on pushes to `master` that touch `packages/` or `.copr/` and builds only the changed
+packages from the pushed commit; changes to the workflow alone (e.g. Renovate digest bumps) build nothing. Run it by
+hand (Actions > COPR packages) to rebuild some or all packages. It needs the `COPR_CONFIG` secret: the content of
+`~/.config/copr` from <https://copr.fedorainfracloud.org/api/>. The token expires after about 180 days; an auth error
+means it needs renewing.
 
 Failures in rawhide are only warnings.
 
