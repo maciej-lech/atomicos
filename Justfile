@@ -93,7 +93,8 @@ rechunk $target_image=image_name $tag=default_tag:
 
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
-#              If the image is found, it loads it into rootful podman. If the image is not found, it pulls it from the repository.
+#              If the image is found, it loads it into rootful podman. If only rootful podman has it (e.g. from
+#              `bootc image copy-to-storage`), it is used as is. Otherwise it pulls it from the repository.
 #
 # Parameters:
 #   $target_image - The name of the target image to be loaded or pulled.
@@ -106,7 +107,8 @@ rechunk $target_image=image_name $tag=default_tag:
 # 1. Check if the script is already running as root or under sudo.
 # 2. Check if target image is in the non-root podman container storage)
 # 3. If the image is found, load it into rootful podman using podman scp.
-# 4. If the image is not found, pull it from the remote repository into reootful podman.
+# 4. If only rootful podman has the image, use it as is.
+# 5. Otherwise, pull it from the remote repository into rootful podman.
 
 _rootful_load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/bash
@@ -131,6 +133,8 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
             sudo TMPDIR=${COPYTMP} podman image scp ${UID}@localhost::"${target_image}:${tag}" root@localhost::"${target_image}:${tag}"
             rm -rf "${COPYTMP}"
         fi
+    elif sudo podman image exists "${target_image}:${tag}"; then
+        echo "Image only in rootful podman, using it as is."
     else
         # If the image is not found, pull it from the repository
         sudo podman pull "${target_image}:${tag}"
