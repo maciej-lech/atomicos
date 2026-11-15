@@ -54,12 +54,19 @@ jobs:
             selected=${INPUT_PACKAGES:-$all}
           elif [[ -z "$BEFORE" || "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             selected=$all
-          elif git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -q '^\.copr/'; then
+          elif [[ -n "$(git diff --name-only "$BEFORE" "$GITHUB_SHA" -- .copr/)" ]]; then
             selected=$all
           else
             selected=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" -- packages/ | cut -d/ -f2 | sort -u)
           fi
-          selected=$(for pkg in $selected; do [[ -f "packages/$pkg/$pkg.spec" ]] && echo "$pkg"; done | xargs)
+          # Keep only package directories (packages/README.md and the like are not packages)
+          packages=()
+          for pkg in $selected; do
+            if [[ -f "packages/$pkg/$pkg.spec" ]]; then
+              packages+=("$pkg")
+            fi
+          done
+          selected=${packages[*]}
           echo "Packages: ${selected:-none}"
           echo "packages=$selected" >> "$GITHUB_OUTPUT"
 
