@@ -434,12 +434,13 @@ update-vendored:
     install -m0644 -D -t build/keys "$tmp/handy-minisign.pub"
     git status --short system/etc .github/cosign build/keys
 
-# List shell scripts git tracks: *.sh plus sh/bash shebang scripts under build/ and system/
+# List shell scripts git tracks: *.sh plus sh/bash shebang scripts under build/ and system/;
+# packages/ holds copies of Fedora dist-git files, kept as is
 shell-sources:
     #!/usr/bin/env bash
     set -euo pipefail
     {
-        git ls-files '*.sh'
+        git ls-files '*.sh' ':!:packages/'
         git ls-files build system | while IFS= read -r f; do
             if [[ -f "$f" && ! -L "$f" ]] && head -n1 "$f" | grep -Eq '^#!\s*(/usr)?/bin/(env\s+)?(ba)?sh(\s|$)'; then
                 echo "$f"

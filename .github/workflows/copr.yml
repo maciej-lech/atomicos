@@ -1,0 +1,107 @@
+---
+name: COPR packages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "packages/**"
+      - ".copr/**"
+      - ".github/workflows/copr.yml"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Packages to build, space separated (empty = all in packages/)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: copr
+  cancel-in-progress: false
+
+env:
+  COPR_PROJECT: maciej-lech/atomicos
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: quay.io/fedora/fedora:45
+    timeout-minutes: 300
+    steps:
+      - name: Install tools
+        run: dnf -y -q install copr-cli git jq
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Select packages
+        id: select
+        shell: bash
+        env:
+          INPUT_PACKAGES: ${{ inputs.packages }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$PWD"
+          all=$(find packages -mindepth 2 -maxdepth 2 -name '*.spec' -printf '%h\n' | cut -d/ -f2 | sort -u)
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            selected=${INPUT_PACKAGES:-$all}
+          elif [[ -z "$BEFORE" || "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            selected=$all
+          elif git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -qE '^(\.copr/|\.github/workflows/copr\.yml$)'; then
+            selected=$all
+          else
+            selected=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" -- packages/ | cut -d/ -f2 | sort -u)
+          fi
+          selected=$(for pkg in $selected; do [[ -f "packages/$pkg/$pkg.spec" ]] && echo "$pkg"; done | xargs)
+          echo "Packages: ${selected:-none}"
+          echo "packages=$selected" >> "$GITHUB_OUTPUT"
+
+      - name: Build in COPR
+        if: steps.select.outputs.packages != ''
+        shell: bash
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+          PACKAGES: ${{ steps.select.outputs.packages }}
+          CLONE_URL: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.config
+          printf '%s\n' "$COPR_CONFIG" > ~/.config/copr
+
+          builds=()
+          for pkg in $PACKAGES; do
+            scm=(--name "$pkg" --clone-url "$CLONE_URL" --commit "$GITHUB_SHA"
+              --subdir "packages/$pkg" --spec "$pkg.spec" --method make_srpm --webhook-rebuild off)
+            copr-cli edit-package-scm "${scm[@]}" "$COPR_PROJECT" 2>/dev/null ||
+              copr-cli add-package-scm "${scm[@]}" "$COPR_PROJECT"
+            id=$(copr-cli build-package --nowait --name "$pkg" "$COPR_PROJECT" | sed -n 's/^Created builds: //p')
+            echo "$pkg: https://copr.fedorainfracloud.org/coprs/build/$id"
+            builds+=("$pkg:$id")
+          done
+
+          failed=0
+          for entry in "${builds[@]}"; do
+            pkg=${entry%%:*} id=${entry#*:}
+            copr-cli watch-build "$id" >/dev/null || true
+            # Rawhide can break for reasons outside our control; only released chroots fail the job
+            while read -r chroot state; do
+              if [[ "$state" == succeeded ]]; then
+                echo "$pkg $chroot: $state"
+              elif [[ "$chroot" == *rawhide* ]]; then
+                echo "::warning::$pkg $chroot: $state (build $id)"
+              else
+                echo "::error::$pkg $chroot: $state (build $id)"
+                failed=1
+              fi
+            done < <(curl -fsSL "https://copr.fedorainfracloud.org/api_3/build-chroot/list?build_id=$id" |
+              jq -r '.items[] | "\(.name) \(.state)"')
+          done
+          exit "$failed"

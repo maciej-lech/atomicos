@@ -1,0 +1,95 @@
+From e58cfca42dcdee798bf7a6e77f86c27a04df346b Mon Sep 17 00:00:00 2001
+From: Maciej Lech
+Date: Sun, 15 Nov 2026 17:15:36 +0100
+Subject: [PATCH] Pause DRM devices before exiting to keep outputs lit
+
+---
+ src/backend/mod.rs |  8 ++++++++
+ src/backend/tty.rs | 27 ++++++++++++++++++++++-----
+ src/main.rs        |  2 ++
+ 3 files changed, 32 insertions(+), 5 deletions(-)
+
+diff --git a/src/backend/mod.rs b/src/backend/mod.rs
+index 49fbc6b0..0718a4e8 100644
+--- a/src/backend/mod.rs
++++ b/src/backend/mod.rs
+@@ -117,6 +117,14 @@ impl Backend {
+         }
+     }
+ 
++    pub fn pause_devices_on_exit(&mut self) {
++        match self {
++            Backend::Tty(tty) => tty.pause_devices_on_exit(),
++            Backend::Winit(_) => (),
++            Backend::Headless(_) => (),
++        }
++    }
++
+     pub fn suspend(&mut self) {
+         match self {
+             Backend::Tty(tty) => tty.suspend(),
+diff --git a/src/backend/tty.rs b/src/backend/tty.rs
+index 5368c7ec..6bd8d6a0 100644
+--- a/src/backend/tty.rs
++++ b/src/backend/tty.rs
+@@ -193,6 +193,14 @@ impl OutputDevice {
+         self.active_leases.retain(|l| l.id() != lease_id);
+     }
+ 
++    fn pause(&mut self) {
++        self.drm.pause();
++
++        if let Some(lease_state) = &mut self.drm_lease_state {
++            lease_state.suspend();
++        }
++    }
++
+     pub fn known_crtc_name(
+         &self,
+         crtc: &crtc::Handle,
+@@ -597,11 +605,7 @@ impl Tty {
+                 self.libinput.suspend();
+ 
+                 for device in self.devices.values_mut() {
+-                    device.drm.pause();
+-
+-                    if let Some(lease_state) = &mut device.drm_lease_state {
+-                        lease_state.suspend();
+-                    }
++                    device.pause();
+                 }
+             }
+             SessionEvent::ActivateSession => {
+@@ -2009,6 +2013,19 @@ impl Tty {
+         }
+     }
+ 
++    pub fn pause_devices_on_exit(&mut self) {
++        // Smithay clears the CRTCs when dropping the surfaces of an active device. Pause first so
++        // the outputs stay lit for the next compositor (e.g. greeter handing off to the session).
++        debug!("pausing DRM devices before exit");
++        for device in self.devices.values_mut() {
++            if device.drm.is_active() {
++                // Revoking a lease needs DRM master, so end the leases before pausing.
++                device.active_leases.clear();
++                device.pause();
++            }
++        }
++    }
++
+     pub fn suspend(&self) {
+         #[cfg(feature = "dbus")]
+         if let Err(err) = suspend() {
+diff --git a/src/main.rs b/src/main.rs
+index e80992ee..cc608b04 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -270,6 +270,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+         .run(None, &mut state, |state| state.refresh_and_flush_clients())
+         .unwrap();
+ 
++    state.backend.pause_devices_on_exit();
++
+     Ok(())
+ }
+ 
