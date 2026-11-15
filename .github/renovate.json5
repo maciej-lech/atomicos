@@ -69,5 +69,12 @@
       "matchDepNames": ["ublue-os/remove-unwanted-software"],
       "minimumReleaseAge": null,
     },
+    {
+      "description": "Fedora major version follows the image rebase; the next major tag is rawhide until release",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["quay.io/fedora/fedora"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+    },
   ]
 }
