@@ -29,7 +29,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: quay.io/fedora/fedora:45
+    container: quay.io/fedora/fedora:46@sha256:02031526999d46c9f9c6490eeccf4cafd735438b9d0fb5e1d9fc941d7886e2ff
     timeout-minutes: 300
     steps:
       - name: Install tools
