@@ -43,7 +43,10 @@ dnf5 install -y \
 
 # Weak deps (alacritty, fuzzel, waybar, swaylock) duplicate what DMS provides;
 # gnome-keyring would compete with oo7-daemon for org.freedesktop.secrets
-dnf5 install -y --setopt=install_weak_deps=False niri
+# Patched build from packages/niri (outputs stay lit at the greeter to session handoff);
+# a newer Fedora niri fails the build until the patch is rebased
+copr_install_isolated "maciej-lech/atomicos" --setopt=install_weak_deps=False niri
+assert_from_repo "copr:copr.fedorainfracloud.org:maciej-lech:atomicos" niri
 
 copr_install_isolated "scottames/ghostty" ghostty
 terra_install_isolated satty

@@ -67,6 +67,22 @@ copr_install_isolated() {
 	echo "Installed ${packages[*]} from $copr_name"
 }
 
+# Fail unless every package was installed from repo_id; catches a newer build in another
+# repo silently replacing a patched one
+assert_from_repo() {
+	local repo_id="$1"
+	shift
+
+	local pkg from
+	for pkg in "$@"; do
+		from=$(dnf5 repoquery --installed --qf '%{from_repo}\n' "$pkg")
+		if [[ "$from" != "$repo_id" ]]; then
+			echo "ERROR: $pkg was installed from '${from}', expected $repo_id" >&2
+			return 1
+		fi
+	done
+}
+
 # RPM Fusion ships no plain repo file, only a release RPM that also carries the
 # GPG keys its repo files point at.
 rpmfusion_install_isolated() {
