@@ -34,6 +34,11 @@ means it needs renewing.
 
 Failures in rawhide are only warnings.
 
+The image build ignores pushes that only touch `packages/` or `.copr/`, since it would install the previous COPR build.
+After the COPR build succeeds, start the image build by hand (Actions > Build container image, or
+`gh workflow run build.yml -R maciej-lech/atomicos`). Keep package changes and image changes in separate pushes; a push
+with both starts the image build right away, before COPR has the new package.
+
 ## Rules for patched Fedora packages
 
 - `Release:` is Fedora's release plus `.N.atomicos` (e.g. `2.1.atomicos%{?dist}`), so it sorts above Fedora's build of

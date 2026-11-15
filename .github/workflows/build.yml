@@ -12,6 +12,10 @@ on:
       - master
     paths-ignore:
       - '**/README.md'
+      # COPR packages: the image would only pick up the new build once COPR finishes;
+      # run the build by hand afterwards
+      - 'packages/**'
+      - '.copr/**'
   workflow_dispatch:
 
 env:
