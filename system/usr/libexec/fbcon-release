@@ -1,0 +1,66 @@
+#!/usr/bin/python3 -I
+
+# Unbind fbcon before greetd takes over VT1. greetd tears the greeter down and
+# reuses VT1 for the session, so VT1 drops back to text mode in between; a bound
+# fbcon then forces its own mode onto every output (full modeset, monitors
+# resync). Boot, initrd and rescue shells run before greetd and keep their text
+# console; VT2-6 use kmscon. Unbinding is one-way until the next boot.
+
+import fcntl
+import glob
+import os
+import sys
+import time
+
+KDGETMODE = 0x4B3B
+KDSETMODE = 0x4B3A
+KD_TEXT = 0
+TTY = "/dev/tty1"
+
+
+def fbcon():
+    for vtcon in sorted(glob.glob("/sys/class/vtconsole/vtcon*")):
+        with open(os.path.join(vtcon, "name")) as f:
+            if "frame buffer" in f.read():
+                return vtcon
+    return None
+
+
+def force_takeover():
+    # Deferred takeover waits for the first output on a text-mode VT; without
+    # this it happens at the greeter-to-session handoff instead.
+    fd = os.open(TTY, os.O_WRONLY | os.O_NOCTTY)
+    try:
+        mode = bytearray(4)
+        fcntl.ioctl(fd, KDGETMODE, mode)
+        mode = int.from_bytes(mode, sys.byteorder)
+        if mode != KD_TEXT:
+            fcntl.ioctl(fd, KDSETMODE, KD_TEXT)
+        os.write(fd, b" ")
+        vtcon = None
+        for _ in range(20):
+            vtcon = fbcon()
+            if vtcon:
+                break
+            time.sleep(0.1)
+        if mode != KD_TEXT:
+            fcntl.ioctl(fd, KDSETMODE, mode)
+        return vtcon
+    finally:
+        os.close(fd)
+
+
+def main():
+    if not glob.glob("/sys/class/graphics/fb*"):
+        return
+    vtcon = fbcon() or force_takeover()
+    if not vtcon:
+        print("fbcon not found, nothing to unbind", file=sys.stderr)
+        return
+    with open(os.path.join(vtcon, "bind"), "w") as f:
+        f.write("0")
+    print(f"unbound fbcon ({os.path.basename(vtcon)})", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
