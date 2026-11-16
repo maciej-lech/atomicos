@@ -74,7 +74,8 @@ dnf5 install -y \
 
 terra_install_isolated nerdfontssymbolsonly-nerd-fonts topgrade
 
-# Terra ships the Nerd Font symbols fontconfig rule but does not enable it.
-NERD_SYMBOLS_CONF=/usr/share/fonts/nerd-fonts/NerdFontsSymbolsOnly/10-nerd-font-symbols.conf
+# Terra's /etc/fonts/conf.d link for the Nerd Font symbols rule is broken (relative
+# "../usr/share/..." resolves under /etc/fonts), so point it at the real file.
+NERD_SYMBOLS_CONF=/usr/share/fontconfig/conf.avail/10-nerd-font-symbols.conf
 test -f "$NERD_SYMBOLS_CONF"
-ln -s "$NERD_SYMBOLS_CONF" /etc/fonts/conf.d/10-nerd-font-symbols.conf
+ln -sfn "$NERD_SYMBOLS_CONF" /etc/fonts/conf.d/10-nerd-font-symbols.conf
