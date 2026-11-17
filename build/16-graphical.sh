@@ -52,7 +52,7 @@ copr_install_isolated "scottames/ghostty" ghostty
 terra_install_isolated satty
 
 # renovate: datasource=github-releases depName=cjpais/handy extractVersion=^v(?<version>.+)$
-HANDY_VERSION="0.10.0"
+HANDY_VERSION="0.10.1"
 handy_rpm="Handy-${HANDY_VERSION}-1.x86_64.rpm"
 handy_dir=$(mktemp -d)
 curl -fsSL --retry 3 -o "$handy_dir/$handy_rpm" \
