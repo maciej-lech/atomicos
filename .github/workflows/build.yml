@@ -143,10 +143,11 @@ jobs:
           sep-annotations: " "
 
       # Mirrors (RPM Fusion, Terra) flake on GitHub runners: retry the build up
-      # to 3 times, each attempt runs only if the previous one failed
+      # to 3 times, each attempt runs only if the previous one failed. PRs get
+      # one attempt so a real failure goes red fast
       - name: Build Image
         id: build_image
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
         uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
         with: &build_image_with
           containerfiles: |
@@ -158,13 +159,13 @@ jobs:
 
       - name: Build Image (attempt 2)
         id: build_image_2
-        if: steps.build_image.outcome == 'failure'
+        if: github.event_name != 'pull_request' && steps.build_image.outcome == 'failure'
         continue-on-error: true
         uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
         with: *build_image_with
 
       - name: Build Image (attempt 3)
-        if: steps.build_image_2.outcome == 'failure'
+        if: github.event_name != 'pull_request' && steps.build_image_2.outcome == 'failure'
         uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
         with: *build_image_with
 
