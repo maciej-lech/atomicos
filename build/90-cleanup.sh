@@ -58,6 +58,15 @@ if [[ $VALIDATION_FAILED -eq 1 ]]; then
 	exit 1
 fi
 
+# /home is a symlink to /var/home; rpm-ostree adds the subs_dist line that
+# labels /var/home like /home, and a selinux-policy update can revert it
+SUBS_DIST=/etc/selinux/targeted/contexts/files/file_contexts.subs_dist
+sed -i 's|^/var/home[[:space:]]\+/home$|/home /var/home|' "$SUBS_DIST"
+if ! grep -qE '^/home[[:space:]]+/var/home$' "$SUBS_DIST"; then
+	echo "Build failed: $SUBS_DIST lacks '/home /var/home'"
+	exit 1
+fi
+
 # Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
 # dnf5 history records install times, and font caches embed directory mtimes
 # (ostree zeroes them at deploy time anyway)
