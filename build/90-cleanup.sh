@@ -33,6 +33,31 @@ done
 
 dnf5 config-manager unsetopt keepcache
 
+# Validate no third-party repos are left enabled; ask dnf so repos enabled by
+# default (no enabled= key) are caught too
+ALLOWED_REPOS=(fedora updates fedora-cisco-openh264 updates-archive)
+if ! enabled_json=$(dnf5 -q repo list --enabled --json); then
+	echo "Build failed: could not list enabled repos"
+	exit 1
+fi
+if ! enabled_ids=$(jq -r '.[].id' <<<"$enabled_json"); then
+	echo "Build failed: could not parse enabled repos"
+	exit 1
+fi
+mapfile -t enabled_repos <<<"$enabled_ids"
+VALIDATION_FAILED=0
+for repo in "${enabled_repos[@]}"; do
+	[[ -n "$repo" ]] || continue
+	if [[ " ${ALLOWED_REPOS[*]} " != *" $repo "* ]]; then
+		echo "ERROR: Enabled repo found: $repo"
+		VALIDATION_FAILED=1
+	fi
+done
+if [[ $VALIDATION_FAILED -eq 1 ]]; then
+	echo "Build failed: third-party repos left enabled"
+	exit 1
+fi
+
 # Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
 # dnf5 history records install times, and font caches embed directory mtimes
 # (ostree zeroes them at deploy time anyway)
@@ -69,28 +94,6 @@ for dir in /boot /tmp /run /var; do
 	prune_dir "$dir"
 done
 shopt -u nullglob dotglob
-
-# Validate no repos are left enabled (Fedora 45 moves Fedora repos to /usr/share/dnf5/repos.d)
-VALIDATION_FAILED=0
-
-for repo in /etc/yum.repos.d/*.repo /usr/share/dnf5/repos.d/*.repo; do
-	[[ -f "$repo" ]] || continue
-	basename_repo=$(basename "$repo")
-	[[ "$basename_repo" == fedora.repo ]] && continue
-	[[ "$basename_repo" == fedora-rawhide.repo ]] && continue
-	[[ "$basename_repo" == fedora-updates*.repo ]] && continue
-	[[ "$basename_repo" == fedora-cisco-openh264.repo ]] && continue
-	if is_repo_enabled "$repo"; then
-		echo "ERROR: Enabled repo found: $repo"
-		grep -iE -B5 "$REPO_ENABLED_RE" "$repo"
-		VALIDATION_FAILED=1
-	fi
-done
-
-if [[ $VALIDATION_FAILED -eq 1 ]]; then
-	echo "Build failed: third-party repos left enabled"
-	exit 1
-fi
 
 # Symlink /usr/local and /opt to /var so they are writable on bootc. Keep the
 # targets relative like the base image: bootc's runtime-deps lint resolves $PATH
