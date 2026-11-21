@@ -11,3 +11,5 @@ disable nfs-client.target
 disable sssd-kcm.socket
 disable sssd-kcm.service
 disable uresourced.service
+disable systemd-nsresourced.socket
+disable systemd-mountfsd.socket

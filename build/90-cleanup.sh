@@ -21,6 +21,10 @@ systemctl disable nfs-client.target
 systemctl disable uresourced.service
 systemctl mask uresourced.service
 systemctl --global mask uresourced.service
+# Unprivileged userns/DDI varlink daemons; nothing uses PrivateUsers=managed or unprivileged image mounts
+systemctl disable systemd-nsresourced.socket systemd-mountfsd.socket
+systemctl mask systemd-nsresourced.socket systemd-nsresourced.service
+systemctl mask systemd-mountfsd.socket systemd-mountfsd.service
 
 # Disable repos inherited from base image
 for repo in /etc/yum.repos.d/_copr*.repo; do
