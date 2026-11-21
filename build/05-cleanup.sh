@@ -2,6 +2,9 @@
 
 set -eoux pipefail
 
+# Keep downloaded packages in the /var/cache build cache mount; 90-cleanup.sh unsets it
+dnf5 config-manager setopt keepcache=1
+
 dnf5 remove -y \
 	default-fonts-cjk-sans \
 	fedora-third-party \

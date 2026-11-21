@@ -27,7 +27,7 @@ for repo in /etc/yum.repos.d/_copr*.repo; do
 	[[ -f "$repo" ]] && repo_disable "$repo"
 done
 
-dnf5 clean all
+dnf5 config-manager unsetopt keepcache
 
 # Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
 # dnf5 history records install times, and font caches embed directory mtimes
@@ -38,12 +38,33 @@ for dir in /usr/share/fonts /usr/share/X11/fonts; do
 done
 fc-cache -sf
 
-# shellcheck disable=SC2114
-rm -rf /boot && mkdir -p /boot
-rm -rf /tmp && mkdir -p /tmp
-rm -rf /run && mkdir -p /run
-# shellcheck disable=SC2115
-rm -rf /var/* && mkdir /var/tmp
+# Empty build-time dirs but leave mounts alone: /var/cache and /var/log are
+# build cache mounts, and /run holds container bind mounts. Removing a
+# mountpoint fails with EBUSY.
+mapfile -t MOUNTS < <(findmnt -rn -o TARGET)
+prune_dir() {
+	# Restore xtrace on return; tracing the mount scan floods the log
+	local -
+	set +x
+	local entry mnt nested
+	for entry in "$1"/*; do
+		nested=0
+		for mnt in "${MOUNTS[@]}"; do
+			[[ "$mnt" == "$entry" ]] && continue 2
+			[[ "$mnt" == "$entry"/* ]] && nested=1
+		done
+		if ((nested)); then
+			prune_dir "$entry"
+		else
+			rm -rf "$entry"
+		fi
+	done
+}
+shopt -s nullglob dotglob
+for dir in /boot /tmp /run /var; do
+	prune_dir "$dir"
+done
+shopt -u nullglob dotglob
 
 # Validate no repos are left enabled (Fedora 45 moves Fedora repos to /usr/share/dnf5/repos.d)
 VALIDATION_FAILED=0
