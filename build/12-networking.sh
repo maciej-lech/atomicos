@@ -17,7 +17,6 @@ dnf5 install -y \
 	NetworkManager-ssh \
 	NetworkManager-team \
 	NetworkManager-tui \
-	NetworkManager-vpnc \
 	nm-connection-editor \
 	samba \
 	samba-common-tools \
