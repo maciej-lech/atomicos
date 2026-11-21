@@ -48,6 +48,8 @@ systemctl enable bootc-update-ca-trust.service
 systemctl enable bootc-update-crypto-policies.service
 systemctl --global enable dfiles.service
 systemctl --global enable gcr-ssh-agent.socket
+# dux-search ships no preset; DMS launcher file search needs the index
+systemctl --global enable dsearch.service
 # topgrade: single user-side run; bootc upgrade allowed passwordless via sudoers
 systemctl --global enable topgrade.timer
 systemctl --global enable udiskie.service
