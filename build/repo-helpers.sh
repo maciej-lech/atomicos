@@ -5,8 +5,13 @@ set -euo pipefail
 # dnf accepts enabled = 1/true/yes/on in any case, with optional whitespace
 REPO_ENABLED_RE='^[[:space:]]*enabled[[:space:]]*=[[:space:]]*(1|true|yes|on)[[:space:]]*$'
 
+# Drop every enabled= line and add enabled=0 under each section header, so
+# sections without the key (enabled by dnf's default) are disabled too
 repo_disable() {
-	sed -i -E 's/^[[:space:]]*enabled[[:space:]]*=.*$/enabled=0/I' "$@"
+	sed -i -E \
+		-e '/^[[:space:]]*enabled[[:space:]]*=/Id' \
+		-e 's/^[[:space:]]*\[[^]]+\][[:space:]]*$/&\nenabled=0/' \
+		"$@"
 }
 
 is_repo_enabled() {
