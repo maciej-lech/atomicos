@@ -1,5 +1,7 @@
 [Unit]
 Description=Topgrade User Update Timer
+ConditionUser=!@system
+ConditionEnvironment=!XDG_SESSION_CLASS=greeter
 
 [Timer]
 OnCalendar=*-*-* 05:30:00

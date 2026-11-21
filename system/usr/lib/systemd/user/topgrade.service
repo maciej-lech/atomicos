@@ -1,6 +1,8 @@
 [Unit]
 Description=Topgrade User Update Oneshot Service
 ConditionACPower=true
+ConditionUser=!@system
+ConditionEnvironment=!XDG_SESSION_CLASS=greeter
 # User manager can't see system network-online.target; retry on failure instead
 StartLimitIntervalSec=1h
 StartLimitBurst=3

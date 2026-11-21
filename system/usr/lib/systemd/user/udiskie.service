@@ -1,6 +1,8 @@
 [Unit]
 Description=Automount removable media
 Documentation=https://github.com/coldfix/udiskie
+ConditionUser=!@system
+ConditionEnvironment=!XDG_SESSION_CLASS=greeter
 
 [Service]
 ExecStart=/usr/bin/udiskie --smart-tray
