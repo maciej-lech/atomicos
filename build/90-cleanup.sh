@@ -67,6 +67,95 @@ if ! grep -qE '^/home[[:space:]]+/var/home$' "$SUBS_DIST"; then
 	exit 1
 fi
 
+# Hosts keep their own /etc/passwd across updates, so every account the image
+# adds needs a pinned ID, and no ID may name two accounts across /etc (image
+# defaults) and /usr/lib (base image, read through nss-altfiles)
+SYSUSERS_PINS=/usr/lib/sysusers.d/00-atomicos-ids.conf
+check_ids() {
+	awk -v db="$1" -v types="$2" -v pins="$SYSUSERS_PINS" '
+		FNR == 1 { file++ }
+		file == 1 {
+			if ($1 ~ types) pinned[$2] = $3
+			next
+		}
+		{
+			split($0, f, ":")
+			name = f[1]
+			id = f[3]
+			src = (file == 2 ? "/usr/lib/" : "/etc/") db
+			if (name in id_of) {
+				if (id_of[name] != id) {
+					printf "%s: %s is %s in %s and %s in %s\n", db, name, id_of[name], src_of[name], id, src
+					bad = 1
+				}
+				next
+			}
+			if (id in name_of) {
+				printf "%s: ID %s is %s in %s and %s in %s\n", db, id, name_of[id], src_of[name_of[id]], name, src
+				bad = 1
+			}
+			id_of[name] = id
+			src_of[name] = src
+			name_of[id] = name
+			if (file == 3 && id != 0) {
+				if (!(name in pinned)) {
+					printf "%s: %s (%s) is not pinned in %s\n", db, name, id, pins
+					bad = 1
+				} else if (pinned[name] != id) {
+					printf "%s: %s is %s, pinned to %s\n", db, name, id, pinned[name]
+					bad = 1
+				}
+			}
+		}
+		END { exit bad }
+	' "$SYSUSERS_PINS" FS=: "/usr/lib/$1" "/etc/$1"
+}
+IDS_OK=1
+check_ids passwd '^u!?$' || IDS_OK=0
+check_ids group '^(u!?|g)$' || IDS_OK=0
+if ((! IDS_OK)); then
+	echo "Build failed: account IDs drift or collide; pin them in $SYSUSERS_PINS"
+	exit 1
+fi
+
+# systemd-sysusers runs on every boot (ostree keeps /usr at mtime 0, so
+# ConditionNeedsUpdate=/etc always holds) and logs each package line that
+# conflicts with a pin; write the pinned IDs into the package lines instead
+for conf in /usr/lib/sysusers.d/*.conf; do
+	[[ "$conf" == "$SYSUSERS_PINS" ]] && continue
+	awk '
+		FNR == NR {
+			if ($1 ~ /^u!?$/) {
+				uid[$2] = $3
+				gid[$2] = $3
+			} else if ($1 == "g") {
+				gid[$2] = $3
+			}
+			next
+		}
+		$3 == "-" && (($1 ~ /^u!?$/ && $2 in uid) || ($1 == "g" && $2 in gid)) {
+			id = ($1 == "g") ? gid[$2] : uid[$2]
+			match($0, /^[[:space:]]*[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+/)
+			$0 = substr($0, 1, RLENGTH) id substr($0, RLENGTH + 2)
+		}
+		{ print }
+	' "$SYSUSERS_PINS" "$conf" >"$conf.pinned"
+	if cmp -s "$conf" "$conf.pinned"; then
+		rm "$conf.pinned"
+	else
+		mv "$conf.pinned" "$conf"
+	fi
+done
+if ! sysusers_out=$(systemd-sysusers --dry-run 2>&1); then
+	echo "$sysusers_out"
+	echo "Build failed: systemd-sysusers --dry-run failed"
+	exit 1
+fi
+if grep -F 'Conflict with earlier configuration' <<<"$sysusers_out"; then
+	echo "Build failed: sysusers.d lines conflict with $SYSUSERS_PINS; match their fields"
+	exit 1
+fi
+
 # Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
 # dnf5 history records install times, and font caches embed directory mtimes
 # (ostree zeroes them at deploy time anyway)

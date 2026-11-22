@@ -41,7 +41,3 @@ dnf_repo_install_isolated https://download.docker.com/linux/fedora/docker-ce.rep
 	docker-model-plugin
 
 systemctl enable docker.socket
-
-cat >/usr/lib/sysusers.d/docker.conf <<'SYSUSERS'
-g docker -
-SYSUSERS
