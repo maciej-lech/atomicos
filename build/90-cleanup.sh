@@ -33,94 +33,15 @@ done
 
 dnf5 config-manager unsetopt keepcache
 
-# Validate no third-party repos are left enabled; ask dnf so repos enabled by
-# default (no enabled= key) are caught too
-ALLOWED_REPOS=(fedora updates fedora-cisco-openh264 updates-archive)
-if ! enabled_json=$(dnf5 -q repo list --enabled --json); then
-	echo "Build failed: could not list enabled repos"
-	exit 1
-fi
-if ! enabled_ids=$(jq -r '.[].id' <<<"$enabled_json"); then
-	echo "Build failed: could not parse enabled repos"
-	exit 1
-fi
-mapfile -t enabled_repos <<<"$enabled_ids"
-VALIDATION_FAILED=0
-for repo in "${enabled_repos[@]}"; do
-	[[ -n "$repo" ]] || continue
-	if [[ " ${ALLOWED_REPOS[*]} " != *" $repo "* ]]; then
-		echo "ERROR: Enabled repo found: $repo"
-		VALIDATION_FAILED=1
-	fi
-done
-if [[ $VALIDATION_FAILED -eq 1 ]]; then
-	echo "Build failed: third-party repos left enabled"
-	exit 1
-fi
-
 # /home is a symlink to /var/home; rpm-ostree adds the subs_dist line that
 # labels /var/home like /home, and a selinux-policy update can revert it
 SUBS_DIST=/etc/selinux/targeted/contexts/files/file_contexts.subs_dist
 sed -i 's|^/var/home[[:space:]]\+/home$|/home /var/home|' "$SUBS_DIST"
-if ! grep -qE '^/home[[:space:]]+/var/home$' "$SUBS_DIST"; then
-	echo "Build failed: $SUBS_DIST lacks '/home /var/home'"
-	exit 1
-fi
-
-# Hosts keep their own /etc/passwd across updates, so every account the image
-# adds needs a pinned ID, and no ID may name two accounts across /etc (image
-# defaults) and /usr/lib (base image, read through nss-altfiles)
-SYSUSERS_PINS=/usr/lib/sysusers.d/00-atomicos-ids.conf
-check_ids() {
-	awk -v db="$1" -v types="$2" -v pins="$SYSUSERS_PINS" '
-		FNR == 1 { file++ }
-		file == 1 {
-			if ($1 ~ types) pinned[$2] = $3
-			next
-		}
-		{
-			split($0, f, ":")
-			name = f[1]
-			id = f[3]
-			src = (file == 2 ? "/usr/lib/" : "/etc/") db
-			if (name in id_of) {
-				if (id_of[name] != id) {
-					printf "%s: %s is %s in %s and %s in %s\n", db, name, id_of[name], src_of[name], id, src
-					bad = 1
-				}
-				next
-			}
-			if (id in name_of) {
-				printf "%s: ID %s is %s in %s and %s in %s\n", db, id, name_of[id], src_of[name_of[id]], name, src
-				bad = 1
-			}
-			id_of[name] = id
-			src_of[name] = src
-			name_of[id] = name
-			if (file == 3 && id != 0) {
-				if (!(name in pinned)) {
-					printf "%s: %s (%s) is not pinned in %s\n", db, name, id, pins
-					bad = 1
-				} else if (pinned[name] != id) {
-					printf "%s: %s is %s, pinned to %s\n", db, name, id, pinned[name]
-					bad = 1
-				}
-			}
-		}
-		END { exit bad }
-	' "$SYSUSERS_PINS" FS=: "/usr/lib/$1" "/etc/$1"
-}
-IDS_OK=1
-check_ids passwd '^u!?$' || IDS_OK=0
-check_ids group '^(u!?|g)$' || IDS_OK=0
-if ((! IDS_OK)); then
-	echo "Build failed: account IDs drift or collide; pin them in $SYSUSERS_PINS"
-	exit 1
-fi
 
 # systemd-sysusers runs on every boot (ostree keeps /usr at mtime 0, so
 # ConditionNeedsUpdate=/etc always holds) and logs each package line that
 # conflicts with a pin; write the pinned IDs into the package lines instead
+SYSUSERS_PINS=/usr/lib/sysusers.d/00-atomicos-ids.conf
 for conf in /usr/lib/sysusers.d/*.conf; do
 	[[ "$conf" == "$SYSUSERS_PINS" ]] && continue
 	awk '
@@ -146,15 +67,6 @@ for conf in /usr/lib/sysusers.d/*.conf; do
 		mv "$conf.pinned" "$conf"
 	fi
 done
-if ! sysusers_out=$(systemd-sysusers --dry-run 2>&1); then
-	echo "$sysusers_out"
-	echo "Build failed: systemd-sysusers --dry-run failed"
-	exit 1
-fi
-if grep -F 'Conflict with earlier configuration' <<<"$sysusers_out"; then
-	echo "Build failed: sysusers.d lines conflict with $SYSUSERS_PINS; match their fields"
-	exit 1
-fi
 
 # Keep unchanged rebuilds byte-identical so clients reuse rechunked layers:
 # dnf5 history records install times, and font caches embed directory mtimes

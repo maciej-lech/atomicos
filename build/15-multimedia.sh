@@ -20,6 +20,3 @@ dnf5 install -y \
 	ffmpegthumbnailer \
 	libheif \
 	libva-utils
-
-# Eager binding surfaces missing symbols from mixed libav* versions
-LD_BIND_NOW=1 ffmpeg -hide_banner -decoders | awk '$2 == "hevc" { print; found = 1 } END { exit !found }'

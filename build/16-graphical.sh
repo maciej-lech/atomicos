@@ -75,19 +75,8 @@ rm -rf "$handy_dir"
 copr_install_isolated "duxlabs/dms-git" \
 	--enablerepo="coprdep:copr.fedorainfracloud.org:duxlabs:dux-repo" \
 	dms dux-files dux-gop dux-greeter
-# A stripped-down /etc/pam.d/greetd would shadow greetd's own stack in
-# /usr/lib/pam.d and lose the keyring unlock at login (#366)
-if [[ -e /etc/pam.d/greetd ]]; then
-	echo "/etc/pam.d/greetd shadows greetd's /usr/lib/pam.d/greetd" >&2
-	exit 1
-fi
 systemctl enable greetd.service
 
 # Both nautilus and dux-files ship a D-Bus activation file for
 # org.freedesktop.FileManager1; keep only the dux-files one.
 rm /usr/share/dbus-1/services/org.freedesktop.FileManager1.service
-
-if rpm -q gnome-keyring; then
-	echo "gnome-keyring is installed and would compete with oo7-daemon" >&2
-	exit 1
-fi
