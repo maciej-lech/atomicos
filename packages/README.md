@@ -51,7 +51,7 @@ with both starts the image build right away, before COPR has the new package.
 
 ## niri
 
-Fedora dist-git `rpms/niri` f45 (`79c992c`) plus one patch from the `proto/pause-drm-on-exit-v26.04` branch: pause
+Fedora dist-git `rpms/niri` f45 (`e475123`) plus one patch from the `proto/pause-drm-on-exit-v26.04` branch: pause
 the DRM devices before exit, so outputs stay lit for the next compositor at the greeter to session handoff (niri
 discussion [#4763](https://github.com/niri-wm/niri/discussions/4763)). Regenerate the patch with
 `git format-patch --no-signature v26.04..<branch>` and drop the email from the `From:` line.

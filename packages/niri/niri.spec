@@ -3,7 +3,7 @@
 Name:           niri
 Version:        26.04
 # atomicos: Fedora's release plus a local suffix, so it sorts above Fedora's build of the same version
-Release:        2.1.atomicos%{?dist}
+Release:        3.1.atomicos%{?dist}
 Summary:        Scrollable-tiling Wayland compositor
 
 SourceLicense:  GPL-3.0-or-later
@@ -59,6 +59,9 @@ Source1:        niri-%{version}-vendor.tar.xz
 Source2:        vendor.toml
 Source3:        vendor.sh
 
+# https://github.com/niri-wm/niri/commit/02fdd8e7586110d6aa79d94f388756a3479091b6
+Patch:          0001-portals-add-oo7-as-secret-portal.patch
+
 # atomicos: pause DRM devices before exit so outputs stay lit for the next compositor
 # (greeter to session handoff); niri-wm/niri discussion 4763
 Patch:          0001-Pause-DRM-devices-before-exiting-to-keep-outputs-lit.patch
@@ -101,9 +104,10 @@ Requires:       xwayland-satellite >= 0.7
 Requires:       libwayland-server
 
 # required for portal support 
-Recommends:     gnome-keyring
 Recommends:     xdg-desktop-portal-gnome
 Recommends:     xdg-desktop-portal-gtk
+Recommends:     (oo7-portal or gnome-keyring)
+Suggests:       oo7-portal
 
 # applications bound by keyboard shortcuts in default configuration 
 Recommends:     alacritty
@@ -193,6 +197,9 @@ export RAYON_NUM_THREADS=2
 %{zsh_completions_dir}/_niri
 
 %changelog
+* Fri Nov 27 2026 Maciej Lech - 26.04-3.1.atomicos
+- Rebase on Fedora dist-git rpms/niri f45 e475123 (oo7-portal as Secret portal)
+
 * Sun Nov 15 2026 Maciej Lech - 26.04-2.1.atomicos
 - Pause DRM devices before exit to keep outputs lit across the greeter to session handoff
 - Based on Fedora dist-git rpms/niri f45 79c992c
