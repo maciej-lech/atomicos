@@ -69,7 +69,7 @@ jobs:
         with:
           # be careful when upgrading major versions
           # renovate: datasource=github-releases depName=sigstore/cosign
-          cosign-release: 'v3.1.4'
+          cosign-release: 'v3.1.5'
 
       # Fail closed: every external image the Containerfile pulls must be pinned
       # by digest and signed with a vendored key (refreshed by update-vendored)
